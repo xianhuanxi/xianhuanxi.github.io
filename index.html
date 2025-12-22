@@ -3,68 +3,73 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>Xitoys.cn - 极致物理交互</title>
+    <title>Xitoys.cn - 极致物理引擎版</title>
     <style>
         * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; margin: 0; padding: 0; }
         body, html { width: 100%; height: 100%; overflow: hidden; background: #ff5f8d; }
 
-        .viewport {
+        .app-container {
             position: relative; width: 100%; height: 100%;
             background: radial-gradient(circle at 50% 50%, #ff85ad 0%, #ff5f8d 100%);
-            z-index: 1;
         }
 
-        .logo {
+        /* 巨大品牌 Logo */
+        .brand-header {
             position: absolute; top: 10%; width: 100%; text-align: center;
             z-index: 10; pointer-events: none;
         }
-        .logo h1 {
+        .brand-header h1 {
             color: white; font-size: 20vw; font-weight: 900; font-style: italic;
             text-shadow: 0 10px 40px rgba(0,0,0,0.15); line-height: 1;
         }
 
-        .bubble {
+        /* 肥皂泡高保真样式 */
+        .bubble-node {
             position: absolute; border-radius: 50%; display: flex;
             align-items: center; justify-content: center; color: white;
             text-decoration: none; font-weight: bold; text-align: center;
-            border: 1.5px solid rgba(255,255,255,0.4);
-            background: radial-gradient(circle at 30% 30%, rgba(255,255,255,0.7) 0%, rgba(255,255,255,0.1) 40%, rgba(135,206,250,0.15) 75%, rgba(255,20,147,0.25) 100%);
-            box-shadow: inset -8px -8px 20px rgba(255,255,255,0.3), 0 15px 35px rgba(0,0,0,0.1);
-            backdrop-filter: blur(3px); -webkit-backdrop-filter: blur(3px);
-            z-index: 50; touch-action: none; user-select: none;
+            border: 1.5px solid rgba(255,255,255,0.45);
+            background: radial-gradient(circle at 30% 30%, rgba(255,255,255,0.7) 0%, rgba(255,255,255,0.1) 40%, rgba(135,206,250,0.2) 75%, rgba(255,20,147,0.25) 100%);
+            box-shadow: inset -10px -10px 25px rgba(255,255,255,0.3), 0 15px 45px rgba(0,0,0,0.15);
+            backdrop-filter: blur(4px); -webkit-backdrop-filter: blur(4px);
+            z-index: 50; touch-action: none; will-change: transform;
         }
 
-        .shop-giant {
-            width: 320px; height: 320px; font-size: 30px;
-            background: radial-gradient(circle at 35% 35%, rgba(255,255,255,0.8) 0%, rgba(255,200,0,0.2) 50%, rgba(255,0,80,0.4) 100%);
-            position: fixed !important; right: -60px; bottom: -60px;
+        /* 右下角巨大购物入口 */
+        .giant-entrance {
+            width: 320px !important; height: 320px !important; font-size: 32px;
+            background: radial-gradient(circle at 35% 35%, rgba(255,255,255,0.8) 0%, rgba(255,200,0,0.25) 50%, rgba(255,0,80,0.4) 100%);
+            position: fixed !important; right: -50px; bottom: -50px;
             z-index: 100; border: 3px solid rgba(255,255,255,0.5);
         }
 
-        #arc-canvas { position: absolute; top: 0; left: 0; width: 100%; height: 100%; z-index: 20; pointer-events: none; }
-        .label { pointer-events: none; text-shadow: 0 2px 8px rgba(0,0,0,0.2); }
+        #electric-canvas { position: absolute; top: 0; left: 0; width: 100%; height: 100%; z-index: 20; pointer-events: none; }
+        .bubble-text { pointer-events: none; text-shadow: 0 2px 10px rgba(0,0,0,0.25); font-size: 16px; }
+        .giant-entrance .bubble-text { font-size: 32px; }
     </style>
 </head>
 <body>
 
-<div class="viewport">
-    <div class="logo"><h1>Xitoys</h1></div>
-    <canvas id="arc-canvas"></canvas>
-    <div id="stage"></div>
+<div class="app-container">
+    <div class="brand-header"><h1>Xitoys</h1></div>
+    <canvas id="electric-canvas"></canvas>
+    <div id="bubble-stage"></div>
 </div>
 
 <script>
-    const canvas = document.getElementById('arc-canvas');
+    const canvas = document.getElementById('electric-canvas');
     const ctx = canvas.getContext('2d');
-    const stage = document.getElementById('stage');
+    const stage = document.getElementById('bubble-stage');
 
     let w, h, bubbles = [];
-    let draggedBubble = null;
+    let activeDrag = null;
 
-    const config = [
-        { t: '欢喜故事', s: 130 }, { t: '两性科普', s: 155 },
-        { t: '视频频道', s: 125 }, { t: '我要投资', s: 115 },
-        { t: '🛒 在线购物', s: 320, isMain: true }
+    const bubbleData = [
+        { label: '欢喜故事', r: 70, url: '#' },
+        { label: '两性科普', r: 80, url: '#' },
+        { label: '视频频道', r: 65, url: '#' },
+        { label: '我要投资', r: 60, url: '#' },
+        { label: '🛒 在线购物', r: 160, isMain: true, url: '#' }
     ];
 
     function init() {
@@ -73,110 +78,140 @@
         stage.innerHTML = '';
         bubbles = [];
 
-        config.forEach((cfg, i) => {
+        bubbleData.forEach((data, i) => {
             const el = document.createElement('div');
-            el.className = 'bubble' + (cfg.isMain ? ' shop-giant' : '');
-            el.innerHTML = `<span class="label">${cfg.t}</span>`;
+            el.className = 'bubble-node' + (data.isMain ? ' giant-entrance' : '');
+            el.innerHTML = `<span class="bubble-text">${data.label}</span>`;
             stage.appendChild(el);
 
-            let x = cfg.isMain ? w - 240 : Math.random() * (w - 150);
-            let y = cfg.isMain ? h - 240 : 150 + Math.random() * (h - 300);
+            // 初始散放坐标，避免重叠
+            let startX = data.isMain ? w - 240 : (w/4 + (i%2)*w/2 + (Math.random()-0.5)*100);
+            let startY = data.isMain ? h - 240 : (h/4 + Math.floor(i/2)*h/2 + (Math.random()-0.5)*100);
 
             const b = {
-                el, x, y, r: cfg.s / 2,
-                vx: cfg.isMain ? 0 : (Math.random() - 0.5) * 2,
-                vy: cfg.isMain ? 0 : (Math.random() - 0.5) * 2,
-                isMain: cfg.isMain || false,
-                isDragging: false
+                el, r: data.r,
+                x: startX, y: startY,
+                vx: data.isMain ? 0 : (Math.random() - 0.5) * 3,
+                vy: data.isMain ? 0 : (Math.random() - 0.5) * 3,
+                mass: data.r,
+                isMain: data.isMain || false,
+                dragging: false
             };
 
-            if(!cfg.isMain) {
+            if (!data.isMain) {
                 el.addEventListener('touchstart', (e) => {
-                    draggedBubble = b;
-                    b.isDragging = true;
-                });
+                    activeDrag = b;
+                    b.dragging = true;
+                    b.vx = b.vy = 0;
+                }, {passive: true});
             }
             bubbles.push(b);
         });
     }
 
-    // 物理引擎：碰撞与排斥逻辑
-    function resolveCollision(b1, b2) {
-        const dx = b2.x + b2.r - (b1.x + b1.r);
-        const dy = b2.y + b2.r - (b1.y + b1.r);
-        const distance = Math.sqrt(dx * dx + dy * dy);
-        const minDistance = b1.r + b2.r;
+    // 核心物理：圆周弹性碰撞算法
+    function checkCollisions() {
+        for (let i = 0; i < bubbles.length; i++) {
+            for (let j = i + 1; j < bubbles.length; j++) {
+                const b1 = bubbles[i];
+                const b2 = bubbles[j];
+                const dx = b2.x - b1.x;
+                const dy = b2.y - b1.y;
+                const dist = Math.sqrt(dx * dx + dy * dy);
+                const minDist = b1.r + b2.r;
 
-        if (distance < minDistance) {
-            // 解决重叠：将气泡推开
-            const overlap = minDistance - distance;
-            const nx = dx / distance; // 法向量X
-            const ny = dy / distance; // 法向量Y
-            
-            if (!b1.isDragging && !b1.isMain) {
-                b1.x -= nx * overlap / 2;
-                b1.y -= ny * overlap / 2;
-                b1.vx -= nx * 0.5; b1.vy -= ny * 0.5;
-            }
-            if (!b2.isDragging && !b2.isMain) {
-                b2.x += nx * overlap / 2;
-                b2.y += ny * overlap / 2;
-                b2.vx += nx * 0.5; b2.vy += ny * 0.5;
+                if (dist < minDist) {
+                    // 1. 静态纠正：防止气泡重叠陷进去
+                    const overlap = minDist - dist;
+                    const nx = dx / dist;
+                    const ny = dy / dist;
+                    
+                    if (!b1.isMain && !b1.dragging) {
+                        b1.x -= nx * overlap * 0.5;
+                        b1.y -= ny * overlap * 0.5;
+                    }
+                    if (!b2.isMain && !b2.dragging) {
+                        b2.x += nx * overlap * 0.5;
+                        b2.y += ny * overlap * 0.5;
+                    }
+
+                    // 2. 动量交换：产生撞击反弹效果
+                    const vRelativeX = b1.vx - b2.vx;
+                    const vRelativeY = b1.vy - b2.vy;
+                    const vDotN = vRelativeX * nx + vRelativeY * ny;
+
+                    if (vDotN > 0) {
+                        const impulse = (2 * vDotN) / (b1.mass + b2.mass);
+                        if (!b1.isMain && !b1.dragging) {
+                            b1.vx -= impulse * b2.mass * nx;
+                            b1.vy -= impulse * b2.mass * ny;
+                        }
+                        if (!b2.isMain && !b2.dragging) {
+                            b2.vx += impulse * b1.mass * nx;
+                            b2.vy += impulse * b1.mass * ny;
+                        }
+                    }
+                }
             }
         }
     }
 
-    function drawLightning(b1, b2) {
-        const d = Math.sqrt((b1.x + b1.r - b2.x - b2.r)**2 + (b1.y + b1.r - b2.y - b2.r)**2);
-        if (d < 400) {
-            ctx.beginPath();
-            ctx.moveTo(b1.x + b1.r, b1.y + b1.r);
-            for(let i=1; i<5; i++){
-                ctx.lineTo(b1.x + b1.r + (b2.x + b2.r - b1.x - b1.r) * i/5 + (Math.random()-0.5)*30, 
-                           b1.y + b1.r + (b2.y + b2.r - b1.y - b1.r) * i/5 + (Math.random()-0.5)*30);
-            }
-            ctx.lineTo(b2.x + b2.r, b2.y + b2.r);
-            ctx.strokeStyle = `rgba(255, 255, 255, ${0.6 * (1 - d/400)})`;
-            ctx.lineWidth = 1.5;
-            ctx.stroke();
-        }
+    function drawLightning() {
+        ctx.clearRect(0, 0, w, h);
+        bubbles.forEach((b1, i) => {
+            bubbles.slice(i + 1).forEach(b2 => {
+                const dx = b2.x - b1.x;
+                const dy = b2.y - b1.y;
+                const d = Math.sqrt(dx*dx + dy*dy);
+                if (d < 450) {
+                    ctx.beginPath();
+                    ctx.moveTo(b1.x, b1.y);
+                    let segs = 6;
+                    for(let k=1; k<segs; k++) {
+                        ctx.lineTo(b1.x + dx*k/segs + (Math.random()-0.5)*40, b1.y + dy*k/segs + (Math.random()-0.5)*40);
+                    }
+                    ctx.lineTo(b2.x, b2.y);
+                    ctx.strokeStyle = `rgba(255, 255, 255, ${0.5 * (1-d/450)})`;
+                    ctx.lineWidth = 1.5;
+                    ctx.stroke();
+                }
+            });
+        });
     }
 
     window.addEventListener('touchmove', (e) => {
-        if (draggedBubble) {
-            const touch = e.touches[0];
-            draggedBubble.x = touch.clientX - draggedBubble.r;
-            draggedBubble.y = touch.clientY - draggedBubble.r;
+        if (activeDrag) {
+            const t = e.touches[0];
+            activeDrag.x = t.clientX;
+            activeDrag.y = t.clientY;
         }
     }, {passive: false});
 
     window.addEventListener('touchend', () => {
-        if(draggedBubble) draggedBubble.isDragging = false;
-        draggedBubble = null;
+        if (activeDrag) activeDrag.dragging = false;
+        activeDrag = null;
     });
 
-    function loop() {
-        ctx.clearRect(0, 0, w, h);
-        for(let i=0; i<bubbles.length; i++) {
-            const b = bubbles[i];
-            if (!b.isDragging && !b.isMain) {
+    function update() {
+        bubbles.forEach(b => {
+            if (!b.dragging && !b.isMain) {
                 b.x += b.vx; b.y += b.vy;
-                if (b.x < 0 || b.x > w - b.r*2) b.vx *= -1;
-                if (b.y < 100 || b.y > h - b.r*2) b.vy *= -1;
+                // 边界反弹
+                if (b.x < b.r || b.x > w - b.r) b.vx *= -1;
+                if (b.y < b.r + 120 || b.y > h - b.r) b.vy *= -1;
             }
-            b.el.style.transform = `translate3d(${b.x}px, ${b.y}px, 0)`;
+            // 使用 translate3d 保证流畅度
+            b.el.style.transform = `translate3d(${b.x - b.r}px, ${b.y - b.r}px, 0)`;
+        });
 
-            for(let j=i+1; j<bubbles.length; j++) {
-                resolveCollision(b, bubbles[j]);
-                drawLightning(b, bubbles[j]);
-            }
-        }
-        requestAnimationFrame(loop);
+        checkCollisions();
+        drawLightning();
+        requestAnimationFrame(update);
     }
 
     window.addEventListener('resize', init);
     init();
-    loop();
+    update();
 </script>
 </body>
 </html>
