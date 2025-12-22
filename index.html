@@ -70,7 +70,7 @@
         wrap.innerHTML = '';
         bubbles = [];
 
-        const logoAreaBottom = h * 0.35; // logo 区域底部
+        const logoAreaBottom = h * 0.35;
 
         config.forEach((d, i) => {
             const el = document.createElement('div');
@@ -81,7 +81,7 @@
 
             const isMain = d.isMain;
             let x = isMain ? w - d.r * 1.5 : w * (0.1 + Math.random() * 0.8);
-            let y = isMain ? h - d.r * 1.5 : logoAreaBottom + (h - logoAreaBottom) * 0.2 + Math.random() * (h - logoAreaBottom - d.r * 2);
+            let y = isMain ? h - d.r * 1.5 : logoAreaBottom + 50 + Math.random() * (h - logoAreaBottom - d.r * 2 - 50); // 加强初始下方
 
             bubbles.push({
                 el, r: d.r, baseR: d.r,
@@ -110,7 +110,7 @@
                 b.y += b.vy;
             }
 
-            // 互相斥力 + 碰撞弹开
+            // 互相斥力 + 碰撞
             bubbles.forEach((other, j) => {
                 if (i === j) return;
                 const dx = other.x - b.x;
@@ -146,23 +146,25 @@
                 }
             });
 
-            // 强力软斥力：气泡进入 logo 区（顶部 35%）时被推开
+            // 增强软斥力 + 直接位置修正
             const logoBottom = h * 0.35;
             const bubbleTop = b.y - b.r;
             if (bubbleTop < logoBottom) {
                 const distToLogo = logoBottom - bubbleTop;
-                const softForce = distToLogo * 0.002; // 力度加大
+                const softForce = distToLogo * 0.005; // 力度翻倍
                 if (!b.isMain && !b.dragging) {
-                    b.vy += softForce * 1.5; // 向上推开
-                    b.vx += (Math.random() - 0.5) * 0.5; // 轻微横向扰动
+                    b.vy += softForce * 2; // 强推速度
+                    b.y += softForce * 0.5; // 直接推位置，平滑避开
+                    b.vx += (Math.random() - 0.5) * 1; // 加强横向扰动
                 }
             }
 
-            // 屏幕边界
+            // 硬边界：顶部用 logoBottom 作为墙
             const margin = 15;
+            const topBoundary = logoBottom + b.r + margin; // 硬挡在 logo 下
+            if (b.y < topBoundary) { b.y = topBoundary; b.vy *= -0.8; }
             if (b.x < b.r + margin) { b.x = b.r + margin; b.vx *= -0.8; }
             if (b.x > w - b.r - margin) { b.x = w - b.r - margin; b.vx *= -0.8; }
-            if (b.y < b.r + margin) { b.y = b.r + margin; b.vy *= -0.8; }
             if (b.y > h - b.r - margin) { b.y = h - b.r - margin; b.vy *= -0.8; }
 
             b.el.style.transform = `translate3d(${b.x - b.baseR}px, \( {b.y - b.baseR}px, 0) scale( \){scale})`;
