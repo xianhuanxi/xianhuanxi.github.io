@@ -23,7 +23,7 @@
                 
                 if (isWeixin) {
                     // 在微信内，通常应该能成功，如果还看到提示说明失败了
-                    tipsDiv.innerHTML = '<p>跳转失败，可能是链接已过期。</p><p>请长按下方链接复制，然后在微信内打开：</p>';
+                    tipsDiv.innerHTML = '<p>跳转失败，请在微信中打开。</p><p>复制电话，添加客服微信：</p>';
                 } else {
                     // 在非微信环境（如手机浏览器），给出明确引导
                     tipsDiv.innerHTML = '<p>检测到您在非微信环境中打开。</p><p><strong>请按以下步骤操作：</strong></p><p>1. 点击下方按钮复制链接</p><p>2. 打开微信</p><p>3. 将链接粘贴到微信对话框并发送</p><p>4. 点击发送出来的链接即可打开小程序</p>';
@@ -32,7 +32,7 @@
                 // 显示一个可复制的链接
                 var linkDiv = document.getElementById('copyLink');
                 linkDiv.style.display = 'block';
-                linkDiv.innerHTML = '<input type="text" id="schemeLink" value="' + weixinScheme + '" readonly style="width:80%; padding:8px;"><button onclick="copyLink()">复制链接</button>';
+                linkDiv.innerHTML = '<input type="text" id="schemeLink" value="' + 17789103723 + '" readonly style="width:80%; padding:8px;"><button onclick="copyLink()">复制链接</button>';
                 
             }, 1500); // 等待1.5秒，如果没跳走就显示提示
         };
@@ -54,3 +54,4 @@
     <div id="copyLink" style="display:none; margin-top:20px;"></div>
 </body>
 </html>
+
