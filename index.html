@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>正在跳转小程序...</title>
+    <script>
+        // 定义微信URL Scheme
+        var weixinScheme = 'weixin://dl/business/?t=v5Q7x4CT0xq';
+        
+        // 页面加载后立即尝试跳转
+        window.onload = function() {
+            // 尝试用 iframe 方式唤醒（兼容一些安卓环境）
+            var iframe = document.createElement('iframe');
+            iframe.style.display = 'none';
+            iframe.src = weixinScheme;
+            document.body.appendChild(iframe);
+            
+            // 设置一个计时器，如果跳转失败，则显示提示信息
+            setTimeout(function() {
+                var isWeixin = /MicroMessenger/i.test(navigator.userAgent);
+                var tipsDiv = document.getElementById('tips');
+                
+                if (isWeixin) {
+                    // 在微信内，通常应该能成功，如果还看到提示说明失败了
+                    tipsDiv.innerHTML = '<p>跳转失败，可能是链接已过期。</p><p>请长按下方链接复制，然后在微信内打开：</p>';
+                } else {
+                    // 在非微信环境（如手机浏览器），给出明确引导
+                    tipsDiv.innerHTML = '<p>检测到您在非微信环境中打开。</p><p><strong>请按以下步骤操作：</strong></p><p>1. 点击下方按钮复制链接</p><p>2. 打开微信</p><p>3. 将链接粘贴到微信对话框并发送</p><p>4. 点击发送出来的链接即可打开小程序</p>';
+                }
+                
+                // 显示一个可复制的链接
+                var linkDiv = document.getElementById('copyLink');
+                linkDiv.style.display = 'block';
+                linkDiv.innerHTML = '<input type="text" id="schemeLink" value="' + weixinScheme + '" readonly style="width:80%; padding:8px;"><button onclick="copyLink()">复制链接</button>';
+                
+            }, 1500); // 等待1.5秒，如果没跳走就显示提示
+        };
+        
+        function copyLink() {
+            var copyInput = document.getElementById('schemeLink');
+            copyInput.select();
+            copyInput.setSelectionRange(0, 99999); // 兼容移动端
+            document.execCommand('copy');
+            alert('链接已复制到剪贴板！');
+        }
+    </script>
+</head>
+<body style="text-align:center; padding-top:50px; font-family:sans-serif;">
+    <h3>正在启动微信小程序...</h3>
+    <div id="tips">
+        <p>如果长时间没有跳转，请稍等片刻或查看下方指引。</p>
+    </div>
+    <div id="copyLink" style="display:none; margin-top:20px;"></div>
+</body>
+</html>
