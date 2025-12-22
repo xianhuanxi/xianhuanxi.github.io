@@ -1,0 +1,230 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Xitoys - 在线购物</title>
+    <style>
+        :root {
+            --primary-pink: #ff5f8d;
+            --light-pink: #fff0f3;
+            --text-dark: #333;
+            --gray: #999;
+        }
+
+        body {
+            margin: 0;
+            display: flex;
+            flex-direction: column;
+            height: 100vh;
+            font-family: sans-serif;
+            background-color: #f8f8f8;
+        }
+
+        /* 顶部导航 */
+        header {
+            background: white;
+            padding: 15px 20px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+            z-index: 10;
+        }
+
+        .back-btn { font-size: 20px; text-decoration: none; color: var(--primary-pink); }
+        .logo { font-style: italic; font-weight: bold; color: var(--primary-pink); }
+
+        /* 主体内容区 */
+        main {
+            flex: 1;
+            display: flex;
+            overflow: hidden; /* 防止整页滚动 */
+        }
+
+        /* 左侧分类 */
+        .category-sidebar {
+            width: 85px;
+            background: #f4f4f4;
+            overflow-y: auto;
+        }
+
+        .cat-item {
+            padding: 20px 10px;
+            font-size: 13px;
+            text-align: center;
+            color: #666;
+            cursor: pointer;
+        }
+
+        .cat-item.active {
+            background: white;
+            color: var(--primary-pink);
+            font-weight: bold;
+            border-left: 4px solid var(--primary-pink);
+        }
+
+        /* 右侧商品列表 */
+        .product-list {
+            flex: 1;
+            background: white;
+            overflow-y: auto;
+            padding: 10px;
+        }
+
+        .section-title {
+            font-size: 14px;
+            color: #333;
+            padding: 5px 0 15px 0;
+            font-weight: bold;
+        }
+
+        .product-card {
+            display: flex;
+            margin-bottom: 20px;
+        }
+
+        .product-img {
+            width: 90px;
+            height: 90px;
+            background: var(--light-pink);
+            border-radius: 8px;
+            margin-right: 12px;
+        }
+
+        .product-info {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+        }
+
+        .p-name { font-size: 15px; font-weight: bold; margin: 0; }
+        .p-desc { font-size: 11px; color: #999; margin: 4px 0; }
+        
+        .p-bottom {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .p-price { color: var(--primary-pink); font-weight: bold; font-size: 16px; }
+        .p-price::before { content: "¥"; font-size: 12px; }
+
+        .add-btn {
+            width: 24px;
+            height: 24px;
+            background: var(--primary-pink);
+            color: white;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 18px;
+            box-shadow: 0 2px 5px rgba(255, 95, 141, 0.4);
+        }
+
+        /* 底部购物车条 */
+        .cart-bar {
+            height: 50px;
+            background: #333;
+            margin: 15px;
+            border-radius: 25px;
+            display: flex;
+            align-items: center;
+            padding: 0 20px;
+            color: white;
+            justify-content: space-between;
+            position: relative;
+        }
+
+        .cart-icon {
+            width: 45px;
+            height: 45px;
+            background: var(--primary-pink);
+            border-radius: 50%;
+            position: absolute;
+            top: -10px;
+            left: 15px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 22px;
+            border: 4px solid #333;
+        }
+
+        .cart-info { margin-left: 60px; font-size: 14px; }
+        .checkout-btn {
+            background: var(--primary-pink);
+            padding: 8px 18px;
+            border-radius: 20px;
+            font-size: 14px;
+            font-weight: bold;
+        }
+    </style>
+</head>
+<body>
+
+    <header>
+        ‹
+        <div class="logo">Xitoys</div>
+        <div style="font-size: 18px;">🔍</div>
+    </header>
+
+    <main>
+        <div class="category-sidebar">
+            <div class="cat-item active">新品推荐</div>
+            <div class="cat-item">热销排行</div>
+            <div class="cat-item">情趣潮玩</div>
+            <div class="cat-item">护理用品</div>
+            <div class="cat-item">优惠套装</div>
+        </div>
+
+        <div class="product-list">
+            <div class="section-title">新品推荐</div>
+            
+            <div class="product-card">
+                <div class="product-img"></div>
+                <div class="product-info">
+                    <div>
+                        <p class="p-name">智能律动按摩器</p >
+                        <p class="p-desc">APP控制，深度静音设计</p >
+                    </div>
+                    <div class="p-bottom">
+                        <span class="p-price">299</span>
+                        <div class="add-btn">+</div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="product-card">
+                <div class="product-img"></div>
+                <div class="product-info">
+                    <div>
+                        <p class="p-name">玫瑰之约香氛</p >
+                        <p class="p-desc">天然植物精油，持久留香</p >
+                    </div>
+                    <div class="p-bottom">
+                        <span class="p-price">158</span>
+                        <div class="add-btn">+</div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="product-card" style="opacity: 0.6;">
+                <div class="product-img"></div>
+                <div class="product-info">
+                    <p class="p-name">更多产品载入中...</p >
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <div class="cart-bar">
+        <div class="cart-icon">🛒</div>
+        <div class="cart-info">未选购商品</div>
+        <div class="checkout-btn">去结算</div>
+    </div>
+
+</body>
+</html>
