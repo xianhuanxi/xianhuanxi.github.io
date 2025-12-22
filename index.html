@@ -3,14 +3,12 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>Xitoys.cn - 完整版</title>
+    <title>Xitoys.cn - 生物感交互系统</title>
     <style>
         * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; margin: 0; padding: 0; }
         body, html { width: 100%; height: 100%; overflow: hidden; background: #ff5f8d; position: fixed; }
-
         #main-container { position: relative; width: 100vw; height: 100vh; background: radial-gradient(circle at 50% 50%, #ff85ad 0%, #ff5f8d 100%); }
 
-        /* 品牌 Logo */
         .brand-box {
             position: absolute; top: 12%; width: 100%; text-align: center;
             z-index: 5; pointer-events: none;
@@ -20,14 +18,13 @@
             text-shadow: 0 10px 40px rgba(0,0,0,0.2);
         }
 
-        /* 气泡组件 */
         .bubble-node {
             position: absolute; border-radius: 50%; 
             display: flex; align-items: center; justify-content: center; 
             color: white; font-weight: bold; pointer-events: none;
-            border: 2px solid rgba(255,255,255,0.45);
-            background: radial-gradient(circle at 30% 30%, rgba(255,255,255,0.7), rgba(255,255,255,0.1) 40%, rgba(135,206,250,0.3) 100%);
-            box-shadow: inset -10px -10px 25px rgba(255,255,255,0.3), 0 10px 40px rgba(0,0,0,0.15);
+            border: 2px solid rgba(255,255,255,0.5);
+            background: radial-gradient(circle at 30% 30%, rgba(255,255,255,0.8), rgba(255,255,255,0.1) 45%, rgba(135,206,250,0.3) 100%);
+            box-shadow: inset -10px -10px 25px rgba(255,255,255,0.3), 0 15px 45px rgba(0,0,0,0.2);
             backdrop-filter: blur(5px); -webkit-backdrop-filter: blur(5px);
             z-index: 10; will-change: transform;
         }
@@ -53,18 +50,16 @@
     const ctx = canvas.getContext('2d');
     const wrap = document.getElementById('bubble-canvas-wrap');
 
-    let w, h, bubbles = [];
+    let w, h, bubbles = [], time = 0;
     let dragTarget = null;
-    let touchStartTime = 0;
-    let touchStartPos = {x:0, y:0};
+    let touchStartData = { t: 0, x: 0, y: 0 };
 
-    // 这里填入您的二级页链接
     const configData = [
         { name: '欢喜故事', r: 72, url: 'story.html' },
         { name: '两性科普', r: 82, url: 'science.html' },
         { name: '视频频道', r: 68, url: 'video.html' },
         { name: '我要投资', r: 62, url: 'invest.html' },
-        { name: '🛒 在线购物', r: 165, isMain: true, url: 'shop.html' }
+        { name: '🛒 在线购物', r: 170, isMain: true, url: 'shop.html' }
     ];
 
     function init() {
@@ -77,104 +72,111 @@
             const el = document.createElement('div');
             el.className = 'bubble-node' + (d.isMain ? ' main-giant' : '');
             el.style.width = el.style.height = (d.r * 2) + 'px';
-            el.innerHTML = `<span style="text-align:center; font-size:${d.isMain?30:17}px;">${d.name}</span>`;
+            el.innerHTML = `<span style="text-align:center; font-size:${d.isMain?32:18}px; text-shadow:0 2px 10px rgba(0,0,0,0.2);">${d.name}</span>`;
             wrap.appendChild(el);
 
-            // 初始分配至不同象限，防止聚众
-            let startX = d.isMain ? w - 100 : (w * (0.2 + (i % 2) * 0.6));
-            let startY = d.isMain ? h - 100 : (h * (0.4 + Math.floor(i / 2) * 0.4));
-
             bubbles.push({
-                el, r: d.r, x: startX, y: startY,
-                vx: d.isMain ? 0 : (Math.random() - 0.5) * 2,
-                vy: d.isMain ? 0 : (Math.random() - 0.5) * 2,
+                el, r: d.r, baseR: d.r,
+                x: d.isMain ? w-100 : w*Math.random(),
+                y: d.isMain ? h-100 : h*Math.random(),
+                vx: 0, vy: 0,
                 isMain: d.isMain || false,
                 url: d.url,
-                dragging: false
+                dragging: false,
+                phase: Math.random() * Math.PI * 2 // 随机初始相位
             });
         });
     }
 
-    function applyPhysics() {
+    function update() {
+        time += 0.02;
+
         for (let i = 0; i < bubbles.length; i++) {
             let b1 = bubbles[i];
 
-            if (!b1.dragging && !b1.isMain) {
-                b1.x += b1.vx; b1.y += b1.vy;
-                // 阻尼感
-                b1.vx *= 0.99; b1.vy *= 0.99;
+            // 1. 呼吸效应：改变半径和视觉缩放
+            let breath = Math.sin(time + b1.phase) * 0.1; // 10% 的呼吸浮动
+            b1.r = b1.baseR * (1 + breath);
+            let visualScale = 1 + breath;
 
-                // 墙壁弹性边界
-                if (b1.x < b1.r) { b1.x = b1.r; b1.vx *= -1; }
-                if (b1.x > w - b1.r) { b1.x = w - b1.r; b1.vx *= -1; }
+            if (!b1.dragging && !b1.isMain) {
+                // 2. 自发移动意愿：微小的随机扰动
+                b1.vx += (Math.random() - 0.5) * 0.15;
+                b1.vy += (Math.random() - 0.5) * 0.15;
+                
+                b1.x += b1.vx; b1.y += b1.vy;
+                b1.vx *= 0.98; b1.vy *= 0.98; // 摩擦力
+
+                // 墙壁反弹保护
+                const margin = 20;
+                if (b1.x < b1.r + margin) { b1.x = b1.r + margin; b1.vx *= -1; }
+                if (b1.x > w - b1.r - margin) { b1.x = w - b1.r - margin; b1.vx *= -1; }
                 if (b1.y < b1.r + 180) { b1.y = b1.r + 180; b1.vy *= -1; }
-                if (b1.y > h - b1.r) { b1.y = h - b1.r; b1.vy *= -1; }
+                if (b1.y > h - b1.r - margin) { b1.y = h - b1.r - margin; b1.vy *= -1; }
             }
 
+            // 3. 动态斥力场：斥力随呼吸同步增强
             for (let j = i + 1; j < bubbles.length; j++) {
                 let b2 = bubbles[j];
                 let dx = b2.x - b1.x;
                 let dy = b2.y - b1.y;
                 let dist = Math.hypot(dx, dy);
-                let min = b1.r + b2.r + 15; // 增加15px的额外斥力安全区
+                let minDist = b1.r + b2.r + 20;
 
-                // 1. 天然斥力场：距离越近斥力越大
-                if (dist < 300) {
-                    let force = (300 - dist) / 5000;
+                // 常态动态斥力
+                if (dist < 400) {
+                    let forceStrength = (1.2 + Math.sin(time)) * 0.0005; // 斥力随全局时间波动
+                    let force = (400 - dist) * forceStrength;
                     let angle = Math.atan2(dy, dx);
                     if(!b1.isMain && !b1.dragging) { b1.vx -= Math.cos(angle) * force; b1.vy -= Math.sin(angle) * force; }
                     if(!b2.isMain && !b2.dragging) { b2.vx += Math.cos(angle) * force; b2.vy += Math.sin(angle) * force; }
                 }
 
-                // 2. 刚体碰撞硬避让
-                if (dist < min) {
+                // 物理硬碰撞处理
+                if (dist < minDist) {
                     let angle = Math.atan2(dy, dx);
-                    let push = (min - dist) / 2;
-                    if (!b1.isMain && !b1.dragging) { b1.x -= Math.cos(angle) * push; b1.y -= Math.sin(angle) * push; b1.vx *= -0.8; }
-                    if (!b2.isMain && !b2.dragging) { b2.x += Math.cos(angle) * push; b2.y += Math.sin(angle) * push; b2.vx *= -0.8; }
+                    let push = (minDist - dist) / 2;
+                    if (!b1.isMain && !b1.dragging) { b1.x -= Math.cos(angle) * push; b1.vx *= -0.5; }
+                    if (!b2.isMain && !b2.dragging) { b2.x += Math.cos(angle) * push; b2.vx *= -0.5; }
                 }
             }
+            
+            // 应用视觉变换
+            b1.el.style.transform = `translate3d(${b1.x - b1.baseR}px, ${b1.y - b1.baseR}px, 0) scale(${visualScale})`;
+            b1.el.style.opacity = 0.8 + (Math.sin(time + b1.phase) * 0.2); // 呼吸透明度
         }
     }
 
-    function draw() {
+    function renderCanvas() {
         ctx.clearRect(0, 0, w, h);
-        bubbles.forEach((b, i) => {
-            b.el.style.transform = `translate3d(${b.x - b.r}px, ${b.y - b.r}px, 0)`;
-
+        bubbles.forEach((b1, i) => {
             bubbles.slice(i + 1).forEach(b2 => {
-                let d = Math.hypot(b.x - b2.x, b.y - b2.y);
-                if (d < 400) {
+                let d = Math.hypot(b1.x - b2.x, b1.y - b2.y);
+                if (d < 450) {
                     ctx.beginPath();
-                    ctx.moveTo(b.x, b.y);
+                    ctx.moveTo(b1.x, b1.y);
+                    // 电弧随机跳动频率增加
                     for(let k=1; k<5; k++){
-                        ctx.lineTo(b.x + (b2.x-b.x)*k/5 + (Math.random()-0.5)*40, b.y + (b2.y-b.y)*k/5 + (Math.random()-0.5)*40);
+                        ctx.lineTo(b1.x + (b2.x-b1.x)*k/5 + (Math.random()-0.5)*50, b1.y + (b2.y-b1.y)*k/5 + (Math.random()-0.5)*50);
                     }
                     ctx.lineTo(b2.x, b2.y);
-                    ctx.strokeStyle = `rgba(255, 255, 255, ${0.4 * (1 - d/400)})`;
-                    ctx.lineWidth = 1.2;
+                    ctx.strokeStyle = `rgba(255, 255, 255, ${0.4 * (1 - d/450) * (1.1+Math.sin(time))})`;
+                    ctx.lineWidth = 1.5;
                     ctx.stroke();
                 }
             });
         });
-        applyPhysics();
-        requestAnimationFrame(draw);
+        update();
+        requestAnimationFrame(renderCanvas);
     }
 
-    // 交互核心：区分拖拽与点击
     canvas.addEventListener('touchstart', (e) => {
         const t = e.touches[0];
-        touchStartTime = Date.now();
-        touchStartPos = {x: t.clientX, y: t.clientY};
-        
+        touchStartData = { t: Date.now(), x: t.clientX, y: t.clientY };
         bubbles.forEach(b => {
-            if (Math.hypot(t.clientX - b.x, t.clientY - b.y) < b.r) {
-                if(!b.isMain) {
-                    dragTarget = b;
-                    b.dragging = true;
-                } else {
-                    dragTarget = b; // 即使是巨型球也标记，用于判定点击
-                }
+            if (Math.hypot(t.clientX - b.x, t.clientY - b.y) < b.r * 1.2) {
+                dragTarget = b;
+                if(!b.isMain) b.dragging = true;
             }
         });
     });
@@ -190,23 +192,18 @@
 
     window.addEventListener('touchend', (e) => {
         if (!dragTarget) return;
-
-        const duration = Date.now() - touchStartTime;
-        const moveDist = Math.hypot(touchStartPos.x - (e.changedTouches[0].clientX), touchStartPos.y - (e.changedTouches[0].clientY));
-
-        // 核心跳转逻辑：如果按住时间短且位移小，视为点击
-        if (duration < 250 && moveDist < 10) {
-            console.log("跳转至:", dragTarget.url);
-            window.location.href = dragTarget.url;
-        }
-
+        const duration = Date.now() - touchStartData.t;
+        const dist = Math.hypot(e.changedTouches[0].clientX - touchStartData.x, e.changedTouches[0].clientY - touchStartData.y);
+        
+        if (duration < 250 && dist < 10) window.location.href = dragTarget.url;
+        
         if (dragTarget) dragTarget.dragging = false;
         dragTarget = null;
     });
 
     window.addEventListener('resize', init);
     init();
-    draw();
+    renderCanvas();
 </script>
 </body>
 </html>
