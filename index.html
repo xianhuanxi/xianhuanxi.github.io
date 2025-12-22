@@ -2,200 +2,154 @@
 <html lang="zh-CN">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Xitoys.cn - 极致交互主页</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <title>Xitoys.cn - 极致交互</title>
     <style>
+        /* 基础环境：强制背景色与溢出隐藏 */
         * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
         body, html { 
             margin: 0; padding: 0; width: 100%; height: 100%; 
             overflow: hidden; background: #ff5f8d; 
-            font-family: "PingFang SC", "Helvetica Neue", sans-serif;
+            font-family: -apple-system, sans-serif;
         }
 
-        /* 顶部巨大 Logo [实现图 1000078119 效果] */
-        .header-container {
-            position: absolute; top: 8%; width: 100%; text-align: center;
+        /* 渐变背景层 */
+        .page-bg {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: linear-gradient(160deg, #ff7ba0 0%, #ff5c8a 100%);
+            z-index: 1;
+        }
+
+        /* 顶部霸气 Logo [对应图 1000078116] */
+        .header {
+            position: absolute; top: 12%; width: 100%; text-align: center;
             z-index: 50; pointer-events: none;
         }
-        .header-container h1 {
-            color: white; font-size: 18vw; font-weight: 900; font-style: italic;
-            margin: 0; text-shadow: 0 10px 40px rgba(0,0,0,0.15);
-            letter-spacing: -2px;
-        }
-        .header-container span { font-size: 5vw; vertical-align: bottom; }
-
-        /* 背景画布：负责绘制电流 */
-        #bgCanvas {
-            position: absolute; top: 0; left: 0; width: 100%; height: 100%;
-            z-index: 5; background: linear-gradient(160deg, #ff7ba0 0%, #ff5c8a 100%);
+        .header h1 {
+            color: white; font-size: 72px; font-weight: 900; font-style: italic;
+            margin: 0; text-shadow: 0 8px 25px rgba(0,0,0,0.15);
         }
 
-        /* 气泡容器 */
-        .bubble-stage {
-            position: absolute; top: 0; left: 0; width: 100%; height: 100%;
-            z-index: 20;
-        }
-
-        /* 绚烂肥皂泡样式 [增强光泽感] */
+        /* 气泡通用样式 [肥皂泡质感] */
         .bubble {
             position: absolute; border-radius: 50%; display: flex;
             align-items: center; justify-content: center; color: white;
             text-decoration: none; font-weight: bold; text-align: center;
-            /* 复杂径向渐变模拟 Iridescent 效果 */
-            background: radial-gradient(circle at 30% 30%, rgba(255,255,255,0.8) 0%, rgba(255,255,255,0.1) 40%, rgba(173,216,230,0.2) 70%, rgba(255,105,180,0.3) 100%);
             border: 1.5px solid rgba(255,255,255,0.4);
-            box-shadow: inset -8px -8px 20px rgba(255,255,255,0.3), 
-                        inset 8px 8px 20px rgba(0,0,0,0.05),
-                        0 15px 45px rgba(0,0,0,0.1);
+            box-shadow: inset -5px -5px 15px rgba(255,255,255,0.3), 0 10px 30px rgba(0,0,0,0.1);
             backdrop-filter: blur(2px); -webkit-backdrop-filter: blur(2px);
-            will-change: transform; transition: opacity 0.5s;
+            z-index: 20; transform: translate3d(0,0,0);
+            animation: breathe 3s infinite ease-in-out;
         }
 
-        /* 呼吸动画：使用 scale3d 提高性能 */
-        @keyframes bubbleBreathe {
-            0%, 100% { transform: scale3d(1, 1, 1); }
-            50% { transform: scale3d(1.15, 1.15, 1); }
-        }
+        /* 虹彩颜色 */
+        .c1 { background: radial-gradient(circle at 30% 30%, rgba(255,255,255,0.6), rgba(130,100,255,0.3)); top: 35%; left: 10%; width: 120px; height: 120px; }
+        .c2 { background: radial-gradient(circle at 30% 30%, rgba(255,255,255,0.6), rgba(0,200,255,0.3)); top: 55%; left: 45%; width: 140px; height: 140px; }
+        .c3 { background: radial-gradient(circle at 30% 30%, rgba(255,255,255,0.6), rgba(255,160,0,0.3)); top: 25%; left: 60%; width: 110px; height: 110px; }
+        .c4 { background: radial-gradient(circle at 30% 30%, rgba(255,255,255,0.6), rgba(0,255,200,0.3)); top: 70%; left: 15%; width: 115px; height: 115px; }
 
-        /* 购物气泡：超级巨大 [实现图 1000078119 红色标记范围] */
+        /* 右下角超大购物气泡 [对应图 1000078119 红色线条] */
         .shop-giant {
-            width: 80vw; height: 80vw; max-width: 350px; max-height: 350px;
-            font-size: 32px; z-index: 100;
-            background: radial-gradient(circle at 35% 35%, rgba(255,255,255,0.7) 0%, rgba(255,200,0,0.2) 50%, rgba(255,0,80,0.4) 100%);
-            animation: bubbleBreathe 4s infinite ease-in-out;
-            bottom: -50px; right: -50px; position: fixed !important;
+            width: 320px; height: 320px; right: -60px; bottom: -60px;
+            background: radial-gradient(circle at 30% 30%, rgba(255,255,255,0.7), rgba(255,0,100,0.4));
+            font-size: 28px; position: fixed !important; z-index: 100;
         }
 
-        .b-text { text-shadow: 0 2px 10px rgba(0,0,0,0.2); pointer-events: none; }
+        @keyframes breathe {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.1); }
+        }
+
+        /* 电流画布层 */
+        #arc-canvas { position: absolute; top: 0; left: 0; width: 100%; height: 100%; z-index: 10; pointer-events: none; }
     </style>
 </head>
 <body>
 
-    <div class="header-container">
-        <h1>Xitoys<span>.cn</span></h1>
+    <div class="page-bg"></div>
+    <div class="header"><h1>Xitoys</h1></div>
+
+    <canvas id="arc-canvas"></canvas>
+
+    <div id="stage">
+        欢喜故事
+        两性科普
+        视频频道
+        我要投资
+        🛒 在线购物
     </div>
 
-    <canvas id="bgCanvas"></canvas>
-
-    <div class="bubble-stage" id="stage">
-        </div>
-
     <script>
-        const canvas = document.getElementById('bgCanvas');
-        const ctx = canvas.getContext('2d');
-        const stage = document.getElementById('stage');
+        // 确保页面加载完成后再执行
+        window.addEventListener('DOMContentLoaded', () => {
+            const canvas = document.getElementById('arc-canvas');
+            const ctx = canvas.getContext('2d');
+            const bubbles = document.querySelectorAll('.bubble');
+            
+            let w, h, items = [];
 
-        let width, height;
-        const config = {
-            bubbleCount: 4,
-            maxDist: 350, // 电流触发距离
-            colors: ['#7028ff', '#00d2ff', '#ff9a00', '#00f2fe']
-        };
+            function resize() {
+                w = canvas.width = window.innerWidth;
+                h = canvas.height = window.innerHeight;
+                initBubbles();
+            }
 
-        let bubbles = [];
-        const labels = ['欢喜故事', '两性科普', '视频频道', '我要投资'];
-
-        function init() {
-            width = canvas.width = window.innerWidth;
-            height = canvas.height = window.innerHeight;
-            stage.innerHTML = '';
-            bubbles = [];
-
-            // 1. 生成常规分类气泡
-            for (let i = 0; i < config.bubbleCount; i++) {
-                const size = 110 + Math.random() * 50;
-                const el = document.createElement('a');
-                el.className = 'bubble';
-                el.style.width = el.style.height = size + 'px';
-                el.innerHTML = `<span class="b-text">${labels[i]}</span>`;
-                el.href = "#";
-                el.style.animation = `bubbleBreathe ${3 + Math.random()*2}s infinite ease-in-out`;
-                stage.appendChild(el);
-
-                bubbles.push({
-                    el: el,
-                    x: Math.random() * (width - size),
-                    y: 150 + Math.random() * (height - 350),
-                    vx: (Math.random() - 0.5) * 2,
-                    vy: (Math.random() - 0.5) * 2,
-                    r: size / 2,
-                    isMain: false
+            function initBubbles() {
+                items = Array.from(bubbles).map(el => {
+                    const rect = el.getBoundingClientRect();
+                    return {
+                        el: el,
+                        x: rect.left,
+                        y: rect.top,
+                        r: rect.width / 2,
+                        vx: (Math.random() - 0.5) * 1.5,
+                        vy: (Math.random() - 0.5) * 1.5,
+                        isMain: el.classList.contains('shop-giant')
+                    };
                 });
             }
 
-            // 2. 生成巨大购物气泡
-            const shopEl = document.createElement('a');
-            shopEl.className = 'bubble shop-giant';
-            shopEl.innerHTML = `<span class="b-text">🛒 在线购物</span>`;
-            shopEl.href = "shop.html";
-            stage.appendChild(shopEl);
-
-            // 购物气泡固定逻辑
-            bubbles.push({
-                el: shopEl,
-                x: width - 150,
-                y: height - 150,
-                vx: 0, vy: 0,
-                r: 160,
-                isMain: true
-            });
-        }
-
-        function drawLightning(b1, b2) {
-            const x1 = b1.x + b1.r;
-            const y1 = b1.y + b1.r;
-            const x2 = b2.x + b2.r;
-            const y2 = b2.y + b2.r;
-
-            const dist = Math.sqrt((x1 - x2)**2 + (y1 - y2)**2);
-            if (dist < config.maxDist) {
-                ctx.beginPath();
-                ctx.moveTo(x1, y1);
-                
-                // 绘制抖动的电弧
-                const segments = 8;
-                for (let i = 1; i < segments; i++) {
-                    const tx = x1 + (x2 - x1) * (i / segments) + (Math.random() - 0.5) * 40;
-                    const ty = y1 + (y2 - y1) * (i / segments) + (Math.random() - 0.5) * 40;
-                    ctx.lineTo(tx, ty);
-                }
-
-                ctx.lineTo(x2, y2);
-                ctx.strokeStyle = `rgba(255, 255, 255, ${1 - dist/config.maxDist})`;
-                ctx.lineWidth = 1.5;
-                ctx.stroke();
-            }
-        }
-
-        function update() {
-            ctx.clearRect(0, 0, width, height);
-
-            for (let i = 0; i < bubbles.length; i++) {
-                const b = bubbles[i];
-                
-                if (!b.isMain) {
-                    b.x += b.vx;
-                    b.y += b.vy;
-
-                    // 边界碰撞
-                    if (b.x <= 0 || b.x >= width - b.r * 2) b.vx *= -1;
-                    if (b.y <= 120 || b.y >= height - b.r * 2) b.vy *= -1;
-                }
-
-                // 同步 DOM 坐标
-                b.el.style.transform = `translate3d(${b.x}px, ${b.y}px, 0)`;
-
-                // 绘制电流
-                for (let j = i + 1; j < bubbles.length; j++) {
-                    drawLightning(b, bubbles[j]);
+            function drawLightning(b1, b2) {
+                const dist = Math.sqrt((b1.x-b2.x)**2 + (b1.y-b2.y)**2);
+                if (dist < 400) {
+                    ctx.beginPath();
+                    ctx.moveTo(b1.x + b1.r, b1.y + b1.r);
+                    for(let i=0; i<5; i++) {
+                        const tx = b1.x + b1.r + (b2.x - b1.x) * (i/5) + (Math.random()-0.5)*30;
+                        const ty = b1.y + b1.r + (b2.y - b1.y) * (i/5) + (Math.random()-0.5)*30;
+                        ctx.lineTo(tx, ty);
+                    }
+                    ctx.lineTo(b2.x + b2.r, b2.y + b2.r);
+                    ctx.strokeStyle = `rgba(255, 255, 255, ${0.5 * (1 - dist/400)})`;
+                    ctx.lineWidth = 1.5;
+                    ctx.stroke();
                 }
             }
-            requestAnimationFrame(update);
-        }
 
-        window.addEventListener('resize', init);
-        init();
-        update();
+            function loop() {
+                ctx.clearRect(0, 0, w, h);
+                items.forEach((b, i) => {
+                    if (!b.isMain) {
+                        b.x += b.vx; b.y += b.vy;
+                        // 碰撞反弹
+                        if (b.x < 0 || b.x > w - b.r*2) b.vx *= -1;
+                        if (b.y < 150 || b.y > h - b.r*2) b.vy *= -1;
+                        // 应用位移
+                        b.el.style.left = b.x + 'px';
+                        b.el.style.top = b.y + 'px';
+                    }
+                    // 绘制电弧
+                    for (let j = i + 1; j < items.length; j++) {
+                        drawLightning(b, items[j]);
+                    }
+                });
+                requestAnimationFrame(loop);
+            }
+
+            window.addEventListener('resize', resize);
+            resize();
+            loop();
+        });
     </script>
 </body>
 </html>
