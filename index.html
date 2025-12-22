@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>Xitoys.cn 欢喜生活馆</title>
+    <title>Xitoys.cn - 生物感交互系统</title>
     <style>
         * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
         body, html { width: 100%; height: 100%; overflow: hidden; background: #ff5f8d; }
@@ -80,8 +80,8 @@
             const isMain = d.isMain;
             bubbles.push({
                 el, r: d.r, baseR: d.r,
-                x: isMain ? w - d.r * 1.5 : w * Math.random(),
-                y: isMain ? h - d.r * 1.5 : h * Math.random(),
+                x: isMain ? w - d.r * 1.5 : w * (0.1 + Math.random() * 0.8),
+                y: isMain ? h - d.r * 1.5 : h * (0.1 + Math.random() * 0.8),
                 vx: 0, vy: 0,
                 isMain, url: d.url,
                 phase: Math.random() * Math.PI * 2
@@ -93,21 +93,20 @@
         time += 0.02;
 
         bubbles.forEach((b, i) => {
-            const breath = Math.sin(time + b.phase) * 0.12; // 呼吸幅度
+            const breath = Math.sin(time + b.phase) * 0.12;
             b.r = b.baseR * (1 + breath);
             const scale = 1 + breath * 0.8;
 
             if (!b.isMain && !b.dragging) {
-                // 随机漂浮
-                b.vx += (Math.random() - 0.5) * 0.2;
-                b.vy += (Math.random() - 0.5) * 0.2;
-                b.vx *= 0.975;
-                b.vy *= 0.975;
+                b.vx += (Math.random() - 0.5) * 0.25;
+                b.vy += (Math.random() - 0.5) * 0.25;
+                b.vx *= 0.97;
+                b.vy *= 0.97;
                 b.x += b.vx;
                 b.y += b.vy;
             }
 
-            // 斥力（随呼吸同步增强）
+            // 增强斥力 + 呼吸同步
             bubbles.forEach((other, j) => {
                 if (i === j) return;
                 const dx = other.x - b.x;
@@ -115,7 +114,8 @@
                 const dist = Math.hypot(dx, dy);
                 if (dist < 1) return;
 
-                const force = (400 - dist) * (0.0008 + breath * 0.001); // 呼吸越大力越大
+                // 斥力随呼吸增强（幅度更大）
+                const force = (600 - dist) * (0.001 + breath * 0.002);
                 const nx = dx / dist;
                 const ny = dy / dist;
 
@@ -128,30 +128,29 @@
                     other.vy += ny * force;
                 }
 
-                // 硬碰撞弹开
-                const minDist = b.r + other.r + 10;
+                // 强力碰撞弹开（防止重叠）
+                const minDist = b.r + other.r + 15;
                 if (dist < minDist) {
                     const overlap = minDist - dist;
-                    const push = overlap * 0.8;
+                    const push = overlap * 1.2; // 加大推力
                     if (!b.isMain && !b.dragging) {
                         b.x -= nx * push;
-                        b.vx *= -0.7;
+                        b.vx *= -0.85;
                     }
                     if (!other.isMain && !other.dragging) {
                         other.x += nx * push;
-                        other.vx *= -0.7;
+                        other.vx *= -0.85;
                     }
                 }
             });
 
-            // 边界保护（顶部留出品牌区）
-            const margin = 20;
+            // 全屏自由移动，仅防贴边
+            const margin = 15;
             if (b.x < b.r + margin) { b.x = b.r + margin; b.vx *= -0.8; }
             if (b.x > w - b.r - margin) { b.x = w - b.r - margin; b.vx *= -0.8; }
-            if (b.y < b.r + 120) { b.y = b.r + 120; b.vy *= -0.8; }
+            if (b.y < b.r + margin) { b.y = b.r + margin; b.vy *= -0.8; }
             if (b.y > h - b.r - margin) { b.y = h - b.r - margin; b.vy *= -0.8; }
 
-            // 应用变换
             b.el.style.transform = `translate3d(${b.x - b.baseR}px, \( {b.y - b.baseR}px, 0) scale( \){scale})`;
             b.el.style.opacity = 0.85 + breath * 0.2;
         });
@@ -162,7 +161,7 @@
         bubbles.forEach((b1, i) => {
             bubbles.slice(i + 1).forEach(b2 => {
                 const dist = Math.hypot(b1.x - b2.x, b1.y - b2.y);
-                if (dist > 450) return;
+                if (dist > 550) return;
                 ctx.beginPath();
                 ctx.moveTo(b1.x, b1.y);
                 for (let k = 1; k < 5; k++) {
@@ -173,7 +172,7 @@
                     );
                 }
                 ctx.lineTo(b2.x, b2.y);
-                ctx.strokeStyle = `rgba(255,255,255,${0.5 * (1 - dist/450) * (1.2 + Math.sin(time * 2))})`;
+                ctx.strokeStyle = `rgba(255,255,255,${0.5 * (1 - dist/550) * (1.2 + Math.sin(time * 2))})`;
                 ctx.lineWidth = 2;
                 ctx.stroke();
             });
@@ -182,7 +181,7 @@
         requestAnimationFrame(render);
     }
 
-    // 拖拽逻辑（更丝滑）
+    // 拖拽逻辑
     canvas.addEventListener('touchstart', e => {
         const touch = e.touches[0];
         touchStartTime = Date.now();
