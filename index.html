@@ -70,7 +70,7 @@
         wrap.innerHTML = '';
         bubbles = [];
 
-        const logoAreaBottom = h * 0.35; // logo 区域底部（约1/3屏幕）
+        const logoAreaBottom = h * 0.35; // logo 区域底部
 
         config.forEach((d, i) => {
             const el = document.createElement('div');
@@ -81,7 +81,7 @@
 
             const isMain = d.isMain;
             let x = isMain ? w - d.r * 1.5 : w * (0.1 + Math.random() * 0.8);
-            let y = isMain ? h - d.r * 1.5 : logoAreaBottom + Math.random() * (h - logoAreaBottom - d.r * 2);
+            let y = isMain ? h - d.r * 1.5 : logoAreaBottom + (h - logoAreaBottom) * 0.2 + Math.random() * (h - logoAreaBottom - d.r * 2);
 
             bubbles.push({
                 el, r: d.r, baseR: d.r,
@@ -110,7 +110,7 @@
                 b.y += b.vy;
             }
 
-            // 增强斥力 + 呼吸同步
+            // 互相斥力 + 碰撞弹开
             bubbles.forEach((other, j) => {
                 if (i === j) return;
                 const dx = other.x - b.x;
@@ -146,17 +146,19 @@
                 }
             });
 
-            // 软斥力：靠近 logo 区（顶部1/3）时轻推开
+            // 强力软斥力：气泡进入 logo 区（顶部 35%）时被推开
             const logoBottom = h * 0.35;
-            if (b.y - b.r < logoBottom) {
-                const distToLogo = logoBottom - (b.y - b.r);
-                const softForce = distToLogo * 0.0005;
+            const bubbleTop = b.y - b.r;
+            if (bubbleTop < logoBottom) {
+                const distToLogo = logoBottom - bubbleTop;
+                const softForce = distToLogo * 0.002; // 力度加大
                 if (!b.isMain && !b.dragging) {
-                    b.vy += softForce;
+                    b.vy += softForce * 1.5; // 向上推开
+                    b.vx += (Math.random() - 0.5) * 0.5; // 轻微横向扰动
                 }
             }
 
-            // 屏幕边界（防贴边）
+            // 屏幕边界
             const margin = 15;
             if (b.x < b.r + margin) { b.x = b.r + margin; b.vx *= -0.8; }
             if (b.x > w - b.r - margin) { b.x = w - b.r - margin; b.vx *= -0.8; }
