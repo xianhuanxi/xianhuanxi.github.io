@@ -3,173 +3,160 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Xitoys.cn - 欢喜生活馆</title>
+    <title>Xitoys - 极致体验</title>
     <style>
-        body, html {
-            margin: 0; padding: 0; width: 100%; height: 100%;
-            overflow: hidden; background: #ff5f8d; /* 基础粉红 */
-            background: linear-gradient(135deg, #ff5f8d 0%, #ff8eaf 100%);
-            font-family: -apple-system, sans-serif;
+        /* 基础样式复位 */
+        * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+        body, html { 
+            margin: 0; padding: 0; width: 100%; height: 100%; 
+            overflow: hidden; background-color: #ff5f8d; 
+            font-family: -apple-system, "PingFang SC", sans-serif;
         }
 
-        /* 顶部霸气 Logo */
-        .logo-container {
-            position: absolute;
-            top: 15%; width: 100%; text-align: center; z-index: 10;
-        }
-        .logo-text {
-            color: white; font-size: 72px; font-weight: 900; font-style: italic;
-            text-shadow: 0 10px 30px rgba(0,0,0,0.1); margin: 0;
-        }
-        .logo-text span { font-size: 28px; }
-
-        /* 电流画布层 */
-        #lightningCanvas {
-            position: absolute; top: 0; left: 0;
-            pointer-events: none; z-index: 5;
+        /* 渐变背景层 */
+        .page-bg {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: linear-gradient(160deg, #ff7ba0 0%, #ff5c8a 50%, #ff85ad 100%);
+            z-index: -1;
         }
 
-        /* 绚丽气泡基础样式：模拟肥皂泡质感 */
+        /* 1. 巨大霸气 Logo [对应您的反馈] */
+        .brand-header {
+            position: absolute; top: 10%; width: 100%; text-align: center; z-index: 10;
+            pointer-events: none;
+        }
+        .brand-header h1 {
+            color: white; font-size: 18vw; /* 随屏幕宽度缩放的超大字体 */
+            font-weight: 900; font-style: italic; margin: 0;
+            text-shadow: 0 10px 30px rgba(0,0,0,0.15);
+        }
+        .brand-header h1 span { font-size: 5vw; font-weight: 400; opacity: 0.9; }
+
+        /* 2. 气泡通用样式 (肥皂泡质感) */
         .bubble {
             position: absolute; border-radius: 50%;
             display: flex; align-items: center; justify-content: center;
-            color: white; text-decoration: none; font-weight: bold;
-            text-align: center; z-index: 20;
-            /* 核心：肥皂泡渐变与阴影 */
-            background: radial-gradient(circle at 30% 30%, 
-                rgba(255, 255, 255, 0.4) 0%, 
-                rgba(255, 255, 255, 0.1) 40%, 
-                rgba(255, 0, 150, 0.1) 60%, 
-                rgba(0, 255, 255, 0.2) 100%);
-            box-shadow: 
-                inset -10px -10px 20px rgba(255, 255, 255, 0.2),
-                inset 10px 10px 20px rgba(0, 0, 0, 0.1),
-                0 10px 40px rgba(0, 0, 0, 0.1);
-            backdrop-filter: blur(2px);
-            border: 1px solid rgba(255, 255, 255, 0.3);
-            animation: breathe 4s infinite ease-in-out;
-        }
-
-        /* 呼吸动画：大小随心而动 */
-        @keyframes breathe {
-            0%, 100% { transform: scale(1); opacity: 0.9; }
-            50% { transform: scale(1.1); opacity: 1; }
-        }
-
-        /* 各分类气泡差异化 */
-        .b-story { width: 130px; height: 130px; font-size: 18px; }
-        .b-science { width: 140px; height: 140px; font-size: 18px; }
-        .b-video { width: 120px; height: 120px; font-size: 18px; }
-        .b-invest { width: 110px; height: 110px; font-size: 18px; }
-
-        /* 右下角超大购物气泡 */
-        .b-shop {
-            width: 280px; height: 280px; /* 极大的购物气泡 */
-            font-size: 36px;
-            background: radial-gradient(circle at 30% 30%, 
-                rgba(255, 255, 255, 0.6) 0%, 
-                rgba(255, 215, 0, 0.2) 50%, 
-                rgba(255, 50, 100, 0.3) 100%);
-            border: 2px solid rgba(255, 255, 255, 0.5);
-            bottom: -50px; right: -50px; /* 沉入边缘 */
-            position: fixed;
+            color: white; font-weight: bold; text-decoration: none;
+            border: 2px solid rgba(255, 255, 255, 0.4);
+            /* 多层渐变模拟光泽 */
+            background: radial-gradient(circle at 30% 30%, rgba(255,255,255,0.7) 0%, rgba(255,255,255,0) 60%),
+                        radial-gradient(circle at 70% 70%, rgba(100,200,255,0.2) 0%, rgba(255,100,200,0.3) 100%);
+            box-shadow: inset -5px -5px 15px rgba(255,255,255,0.4), 
+                        10px 20px 40px rgba(0,0,0,0.1);
+            backdrop-filter: blur(3px);
             animation: breathe 3s infinite ease-in-out;
+            z-index: 20; text-align: center;
         }
 
-        .bubble span { pointer-events: none; text-shadow: 0 2px 10px rgba(0,0,0,0.2); }
+        /* 呼吸动效：同步缩放 */
+        @keyframes breathe {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.1); }
+        }
+
+        /* 气泡尺寸差异化 */
+        .b-lg { width: 150px; height: 150px; font-size: 20px; }
+        .b-md { width: 130px; height: 130px; font-size: 18px; }
+        .b-sm { width: 110px; height: 110px; font-size: 16px; }
+
+        /* 3. 右下角超大常驻购物气泡 */
+        .b-shop-main {
+            width: 75vw; height: 75vw; /* 极大比例 */
+            max-width: 320px; max-height: 320px;
+            right: -15%; bottom: -10%;
+            position: fixed; font-size: 28px;
+            background: radial-gradient(circle at 30% 30%, rgba(255,255,255,0.8) 0%, rgba(255,180,0,0.3) 50%, rgba(255,0,80,0.5) 100%);
+            z-index: 100; border: 3px solid rgba(255, 255, 255, 0.6);
+        }
+
+        /* 4. 电弧 Canvas 层 */
+        #arc-canvas { position: absolute; top: 0; left: 0; pointer-events: none; z-index: 15; }
     </style>
 </head>
 <body>
-
-    <div class="logo-container">
-        <h1 class="logo-text">Xitoys<span>.cn</span></h1>
+    <div class="page-bg"></div>
+    
+    <div class="brand-header">
+        <h1>Xitoys<span>.cn</span></h1>
     </div>
 
-    <canvas id="lightningCanvas"></canvas>
+    <canvas id="arc-canvas"></canvas>
 
-    <span>欢喜<br>故事</span>
-    <span>两性<br>科普</span>
-    <span>视频<br>频道</span>
-    <span>我要<br>投资</span>
+    欢喜故事
+    两性科普
+    视频频道
+    我要投资
 
-    <span>🛒<br>在线购物</span>
+    🛒<br>在线购物
 
     <script>
-        const canvas = document.getElementById('lightningCanvas');
+        const canvas = document.getElementById('arc-canvas');
         const ctx = canvas.getContext('2d');
         const bubbles = document.querySelectorAll('.bubble');
-        
-        let width, height;
-        let bubbleData = [];
+        let w, h;
+        let items = [];
 
         function init() {
-            width = canvas.width = window.innerWidth;
-            height = canvas.height = window.innerHeight;
+            w = canvas.width = window.innerWidth;
+            h = canvas.height = window.innerHeight;
             
-            bubbleData = Array.from(bubbles).map(el => {
-                const isMain = el.id === 'b_main';
+            items = Array.from(bubbles).map(el => {
+                const isMain = el.id === 'p_shop';
+                const rect = el.getBoundingClientRect();
                 return {
-                    el: el,
-                    isMain: isMain,
-                    x: isMain ? width : Math.random() * (width - 150),
-                    y: isMain ? height : Math.random() * (height - 300) + 100,
-                    vx: isMain ? 0 : (Math.random() - 0.5) * 1.2,
-                    vy: isMain ? 0 : (Math.random() - 0.5) * 1.2,
-                    r: el.offsetWidth / 2
+                    el, isMain,
+                    r: el.offsetWidth / 2,
+                    x: isMain ? w * 0.7 : Math.random() * (w - 150),
+                    y: isMain ? h * 0.8 : Math.random() * (h - 300) + 150,
+                    vx: isMain ? 0 : (Math.random() - 0.5) * 1.8,
+                    vy: isMain ? 0 : (Math.random() - 0.5) * 1.8
                 };
             });
         }
 
-        // 绘制电弧逻辑
-        function drawLightning(x1, y1, x2, y2) {
-            const dist = Math.sqrt((x1-x2)**2 + (y1-y2)**2);
-            if (dist > 400) return; // 只连接相近的气泡
-
+        // 绘制随机电弧
+        function drawElectricArc(x1, y1, x2, y2) {
             ctx.beginPath();
             ctx.moveTo(x1, y1);
-            
-            const steps = 6;
-            for(let i = 1; i <= steps; i++) {
-                const tx = x1 + (x2 - x1) * (i / steps) + (Math.random() - 0.5) * 30;
-                const ty = y1 + (y2 - y1) * (i / steps) + (Math.random() - 0.5) * 30;
+            let segments = 5;
+            for(let i=1; i<=segments; i++) {
+                let tx = x1 + (x2-x1) * (i/segments) + (Math.random()-0.5)*30;
+                let ty = y1 + (y2-y1) * (i/segments) + (Math.random()-0.5)*30;
                 ctx.lineTo(tx, ty);
             }
-            
-            ctx.lineTo(x2, y2);
-            ctx.strokeStyle = `rgba(255, 255, 255, ${Math.random() * 0.4})`;
-            ctx.lineWidth = 1;
+            ctx.strokeStyle = `rgba(255, 255, 255, ${Math.random() * 0.5})`;
+            ctx.lineWidth = 1.5;
             ctx.stroke();
         }
 
-        function update() {
-            ctx.clearRect(0, 0, width, height);
-
-            bubbleData.forEach((b, i) => {
-                if (!b.isMain) {
-                    b.x += b.vx;
-                    b.y += b.vy;
-
-                    // 碰撞边界
-                    if (b.x < 0 || b.x > width - b.r*2) b.vx *= -1;
-                    if (b.y < 0 || b.y > height - b.r*2) b.vy *= -1;
+        function loop() {
+            ctx.clearRect(0, 0, w, h);
+            items.forEach((item, i) => {
+                if (!item.isMain) {
+                    item.x += item.vx; item.y += item.vy;
+                    // 碰壁检测
+                    if (item.x < 0 || item.x > w - item.r*2) item.vx *= -1;
+                    if (item.y < 100 || item.y > h - item.r*2) item.vy *= -1;
                 }
+                
+                item.el.style.left = item.x + 'px';
+                item.el.style.top = item.y + 'px';
 
-                // 物理位置同步到 DOM
-                b.el.style.transform = `translate(${b.x}px, ${b.y}px)`;
-
-                // 绘制与其他气泡的电流
-                for (let j = i + 1; j < bubbleData.length; j++) {
-                    const b2 = bubbleData[j];
-                    drawLightning(b.x + b.r, b.y + b.r, b2.x + b2.r, b2.y + b2.r);
+                // 计算电流
+                for (let j = i + 1; j < items.length; j++) {
+                    let other = items[j];
+                    let dist = Math.sqrt((item.x-other.x)**2 + (item.y-other.y)**2);
+                    if (dist < 300) {
+                        drawElectricArc(item.x + item.r, item.y + item.r, other.x + other.r, other.y + other.r);
+                    }
                 }
             });
-
-            requestAnimationFrame(update);
+            requestAnimationFrame(loop);
         }
 
         window.addEventListener('resize', init);
         init();
-        update();
+        loop();
     </script>
 </body>
 </html>
