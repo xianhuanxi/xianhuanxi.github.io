@@ -3,40 +3,38 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>Xitoys.cn - 生物感交互系统</title>
+    <title>Xitoys.cn - 生物感增强版</title>
     <style>
-        * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
-        body, html { width: 100%; height: 100%; overflow: hidden; background: #ff5f8d; }
+        * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; margin: 0; padding: 0; }
+        body, html { width: 100%; height: 100%; overflow: hidden; background: #ff5f8d; position: fixed; }
         #main-container { position: relative; width: 100vw; height: 100vh; background: radial-gradient(circle at 50% 50%, #ff85ad 0%, #ff5f8d 100%); }
 
         .brand-box {
-            position: absolute; top: 8%; left: 0; right: 0; text-align: center;
-            z-index: 5; pointer-events: none;
+            position: absolute; top: 12%; width: 100%; text-align: center;
+            z-index: 5; pointer-events: none; opacity: 0.9;
         }
         .brand-box h1 {
-            color: white; font-size: 22vw; font-weight: 900; font-style: italic;
-            text-shadow: 0 10px 40px rgba(0,0,0,0.4);
-            letter-spacing: -3px;
+            color: white; font-size: 20vw; font-weight: 900; font-style: italic;
+            text-shadow: 0 10px 40px rgba(0,0,0,0.2);
         }
 
         .bubble-node {
             position: absolute; border-radius: 50%; 
             display: flex; align-items: center; justify-content: center; 
-            color: white; font-weight: bold; 
+            color: white; font-weight: bold; pointer-events: none;
             border: 2px solid rgba(255,255,255,0.6);
-            background: radial-gradient(circle at 30% 30%, rgba(255,255,255,0.9), rgba(255,255,255,0.2) 50%, rgba(135,206,250,0.4) 100%);
-            box-shadow: inset -10px -10px 30px rgba(255,255,255,0.4), 0 15px 50px rgba(0,0,0,0.3);
-            backdrop-filter: blur(6px); -webkit-backdrop-filter: blur(6px);
-            will-change: transform; transition: transform 0.1s ease-out;
-            pointer-events: auto;
+            background: radial-gradient(circle at 30% 30%, rgba(255,255,255,0.8), rgba(255,255,255,0.1) 45%, rgba(135,206,250,0.3) 100%);
+            box-shadow: inset -10px -10px 25px rgba(255,255,255,0.3), 0 15px 45px rgba(0,0,0,0.2);
+            backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px);
+            z-index: 10; will-change: transform;
         }
 
         .main-giant {
-            background: radial-gradient(circle at 35% 35%, rgba(255,255,255,0.95), rgba(255,180,0,0.5) 60%, rgba(255,0,80,0.6) 100%);
-            box-shadow: inset -15px -15px 40px rgba(255,255,255,0.5), 0 20px 60px rgba(0,0,0,0.4);
+            z-index: 100;
+            background: radial-gradient(circle at 35% 35%, rgba(255,255,255,0.9), rgba(255,180,0,0.4) 60%, rgba(255,0,80,0.6) 100%);
         }
 
-        #interaction-layer { position: absolute; top: 0; left: 0; width: 100%; height: 100%; z-index: 20; pointer-events: none; }
+        #interaction-layer { position: absolute; top: 0; left: 0; width: 100%; height: 100%; z-index: 20; }
     </style>
 </head>
 <body>
@@ -53,15 +51,15 @@
     const wrap = document.getElementById('bubble-canvas-wrap');
 
     let w, h, bubbles = [], time = 0;
-    let dragTarget = null, dragOffset = { x: 0, y: 0 };
-    let touchStartTime = 0;
+    let dragTarget = null;
+    let touchStartData = { t: 0, x: 0, y: 0 };
 
-    const config = [
+    const configData = [
         { name: '欢喜故事', r: 72, url: 'story.html' },
         { name: '两性科普', r: 82, url: 'science.html' },
         { name: '视频频道', r: 68, url: 'video.html' },
         { name: '我要投资', r: 62, url: 'invest.html' },
-        { name: '🛒 在线购物', r: 170, isMain: true, url: 'shop.html' }
+        { name: '🛒 在线购物', r: 165, isMain: true, url: 'shop.html' }
     ];
 
     function init() {
@@ -70,174 +68,134 @@
         wrap.innerHTML = '';
         bubbles = [];
 
-        const logoAreaBottom = h * 0.35;
-
-        config.forEach((d, i) => {
+        configData.forEach((d, i) => {
             const el = document.createElement('div');
             el.className = 'bubble-node' + (d.isMain ? ' main-giant' : '');
             el.style.width = el.style.height = (d.r * 2) + 'px';
-            el.innerHTML = `<span style="font-size:\( {d.isMain?32:20}px; text-shadow:0 3px 12px rgba(0,0,0,0.3);"> \){d.name}</span>`;
+            el.innerHTML = `<span style="text-align:center; font-size:${d.isMain?32:18}px;">${d.name}</span>`;
             wrap.appendChild(el);
-
-            const isMain = d.isMain;
-            let x = isMain ? w - d.r * 1.5 : w * (0.1 + Math.random() * 0.8);
-            let y = isMain ? h - d.r * 1.5 : logoAreaBottom + 50 + Math.random() * (h - logoAreaBottom - d.r * 2 - 50); // 加强初始下方
 
             bubbles.push({
                 el, r: d.r, baseR: d.r,
-                x, y,
-                vx: 0, vy: 0,
-                isMain, url: d.url,
+                x: d.isMain ? w-120 : w*Math.random(),
+                y: d.isMain ? h-120 : h*Math.random(),
+                vx: (Math.random()-0.5)*2, vy: (Math.random()-0.5)*2,
+                isMain: d.isMain || false, url: d.url,
+                dragging: false,
                 phase: Math.random() * Math.PI * 2
             });
         });
     }
 
     function update() {
-        time += 0.02;
+        time += 0.025; // 略微加快呼吸频率
 
-        bubbles.forEach((b, i) => {
-            const breath = Math.sin(time + b.phase) * 0.12;
-            b.r = b.baseR * (1 + breath);
-            const scale = 1 + breath * 0.8;
+        bubbles.forEach((b1, i) => {
+            // 1. 呼吸功能修复：计算缩放比例
+            let breathFactor = Math.sin(time + b1.phase);
+            let scale = 1 + (breathFactor * 0.12); // 12% 的呼吸幅度
+            b1.r = b1.baseR * scale;
 
-            if (!b.isMain && !b.dragging) {
-                b.vx += (Math.random() - 0.5) * 0.25;
-                b.vy += (Math.random() - 0.5) * 0.25;
-                b.vx *= 0.97;
-                b.vy *= 0.97;
-                b.x += b.vx;
-                b.y += b.vy;
+            if (!b1.dragging && !b1.isMain) {
+                // 2. 自发游走意愿增强
+                b1.vx += (Math.random() - 0.5) * 0.25;
+                b1.vy += (Math.random() - 0.5) * 0.25;
+                
+                // 3. 边界逻辑优化：不再死锁顶部 180px
+                b1.x += b1.vx; b1.y += b1.vy;
+                b1.vx *= 0.97; b1.vy *= 0.97;
+
+                const margin = 10;
+                if (b1.x < b1.r + margin) { b1.x = b1.r + margin; b1.vx *= -1.2; }
+                if (b1.x > w - b1.r - margin) { b1.x = w - b1.r - margin; b1.vx *= -1.2; }
+                if (b1.y < b1.r + 50) { b1.y = b1.r + 50; b1.vy *= -1.2; } // 顶部预留更少
+                if (b1.y > h - b1.r - margin) { b1.y = h - b1.r - margin; b1.vy *= -1.2; }
+
+                // Logo 区域微弱排斥（而不是死锁）
+                if (b1.y < 250) b1.vy += 0.15; 
             }
 
-            // 互相斥力 + 碰撞
-            bubbles.forEach((other, j) => {
-                if (i === j) return;
-                const dx = other.x - b.x;
-                const dy = other.y - b.y;
-                const dist = Math.hypot(dx, dy);
-                if (dist < 1) return;
+            // 4. 斥力算法优化：随呼吸脉动
+            bubbles.slice(i + 1).forEach(b2 => {
+                let dx = b2.x - b1.x;
+                let dy = b2.y - b1.y;
+                let dist = Math.hypot(dx, dy);
+                let minDist = b1.r + b2.r + 15;
 
-                const force = (600 - dist) * (0.001 + breath * 0.002);
-                const nx = dx / dist;
-                const ny = dy / dist;
-
-                if (!b.isMain && !b.dragging) {
-                    b.vx -= nx * force;
-                    b.vy -= ny * force;
-                }
-                if (!other.isMain && !other.dragging) {
-                    other.vx += nx * force;
-                    other.vy += ny * force;
+                if (dist < 350) {
+                    let force = (350 - dist) * 0.0006 * (1.2 + Math.sin(time));
+                    let angle = Math.atan2(dy, dx);
+                    if(!b1.dragging && !b1.isMain) { b1.vx -= Math.cos(angle) * force; b1.vy -= Math.sin(angle) * force; }
+                    if(!b2.dragging && !b2.isMain) { b2.vx += Math.cos(angle) * force; b2.vy += Math.sin(angle) * force; }
                 }
 
-                const minDist = b.r + other.r + 15;
                 if (dist < minDist) {
-                    const overlap = minDist - dist;
-                    const push = overlap * 1.2;
-                    if (!b.isMain && !b.dragging) {
-                        b.x -= nx * push;
-                        b.vx *= -0.85;
-                    }
-                    if (!other.isMain && !other.dragging) {
-                        other.x += nx * push;
-                        other.vx *= -0.85;
-                    }
+                    let angle = Math.atan2(dy, dx);
+                    let push = (minDist - dist) / 2;
+                    if(!b1.isMain && !b1.dragging){ b1.x -= Math.cos(angle)*push; b1.vx *= -0.6; }
+                    if(!b2.isMain && !b2.dragging){ b2.x += Math.cos(angle)*push; b2.vx *= -0.6; }
                 }
             });
 
-            // 增强软斥力 + 直接位置修正
-            const logoBottom = h * 0.35;
-            const bubbleTop = b.y - b.r;
-            if (bubbleTop < logoBottom) {
-                const distToLogo = logoBottom - bubbleTop;
-                const softForce = distToLogo * 0.005; // 力度翻倍
-                if (!b.isMain && !b.dragging) {
-                    b.vy += softForce * 2; // 强推速度
-                    b.y += softForce * 0.5; // 直接推位置，平滑避开
-                    b.vx += (Math.random() - 0.5) * 1; // 加强横向扰动
-                }
-            }
-
-            // 硬边界：顶部用 logoBottom 作为墙
-            const margin = 15;
-            const topBoundary = logoBottom + b.r + margin; // 硬挡在 logo 下
-            if (b.y < topBoundary) { b.y = topBoundary; b.vy *= -0.8; }
-            if (b.x < b.r + margin) { b.x = b.r + margin; b.vx *= -0.8; }
-            if (b.x > w - b.r - margin) { b.x = w - b.r - margin; b.vx *= -0.8; }
-            if (b.y > h - b.r - margin) { b.y = h - b.r - margin; b.vy *= -0.8; }
-
-            b.el.style.transform = `translate3d(${b.x - b.baseR}px, \( {b.y - b.baseR}px, 0) scale( \){scale})`;
-            b.el.style.opacity = 0.85 + breath * 0.2;
+            // 应用最终变换：位移 + 呼吸缩放
+            b1.el.style.transform = `translate3d(${b1.x - b1.baseR}px, ${b1.y - b1.baseR}px, 0) scale(${scale})`;
+            b1.el.style.opacity = 0.85 + (breathFactor * 0.15);
         });
     }
 
-    function render() {
+    function draw() {
         ctx.clearRect(0, 0, w, h);
         bubbles.forEach((b1, i) => {
             bubbles.slice(i + 1).forEach(b2 => {
-                const dist = Math.hypot(b1.x - b2.x, b1.y - b2.y);
-                if (dist > 550) return;
-                ctx.beginPath();
-                ctx.moveTo(b1.x, b1.y);
-                for (let k = 1; k < 5; k++) {
-                    const offset = (Math.sin(time * 3 + k) * 0.5 + 0.5) * 60;
-                    ctx.lineTo(
-                        b1.x + (b2.x - b1.x) * k / 5 + (Math.random() - 0.5) * offset,
-                        b1.y + (b2.y - b1.y) * k / 5 + (Math.random() - 0.5) * offset
-                    );
+                let d = Math.hypot(b1.x - b2.x, b1.y - b2.y);
+                if (d < 400) {
+                    ctx.beginPath();
+                    ctx.moveTo(b1.x, b1.y);
+                    for(let k=1; k<5; k++){
+                        ctx.lineTo(b1.x + (b2.x-b1.x)*k/5 + (Math.random()-0.5)*40, b1.y + (b2.y-b1.y)*k/5 + (Math.random()-0.5)*40);
+                    }
+                    ctx.lineTo(b2.x, b2.y);
+                    ctx.strokeStyle = `rgba(255, 255, 255, ${0.45 * (1 - d/400)})`;
+                    ctx.lineWidth = 1.5;
+                    ctx.stroke();
                 }
-                ctx.lineTo(b2.x, b2.y);
-                ctx.strokeStyle = `rgba(255,255,255,${0.5 * (1 - dist/550) * (1.2 + Math.sin(time * 2))})`;
-                ctx.lineWidth = 2;
-                ctx.stroke();
             });
         });
         update();
-        requestAnimationFrame(render);
+        requestAnimationFrame(draw);
     }
 
-    // 拖拽逻辑
-    canvas.addEventListener('touchstart', e => {
-        const touch = e.touches[0];
-        touchStartTime = Date.now();
-        dragTarget = null;
+    canvas.addEventListener('touchstart', (e) => {
+        const t = e.touches[0];
+        touchStartData = { t: Date.now(), x: t.clientX, y: t.clientY };
         bubbles.forEach(b => {
-            const dx = touch.clientX - b.x;
-            const dy = touch.clientY - b.y;
-            if (Math.hypot(dx, dy) < b.r * 1.3) {
+            if (Math.hypot(t.clientX - b.x, t.clientY - b.y) < b.r * 1.1) {
                 dragTarget = b;
-                if (!b.isMain) {
-                    b.dragging = true;
-                    dragOffset.x = touch.clientX - b.x;
-                    dragOffset.y = touch.clientY - b.y;
-                }
+                if(!b.isMain) b.dragging = true;
             }
         });
     });
 
-    window.addEventListener('touchmove', e => {
-        if (!dragTarget || dragTarget.isMain) return;
-        e.preventDefault();
-        const touch = e.touches[0];
-        dragTarget.x = touch.clientX - dragOffset.x;
-        dragTarget.y = touch.clientY - dragOffset.y;
-    }, { passive: false });
-
-    window.addEventListener('touchend', e => {
-        if (!dragTarget) return;
-        const duration = Date.now() - touchStartTime;
-        const dist = Math.hypot(e.changedTouches[0].clientX - dragTarget.x, e.changedTouches[0].clientY - dragTarget.y);
-        if (duration < 300 && Math.abs(dist) < 15) {
-            window.location.href = dragTarget.url;
+    window.addEventListener('touchmove', (e) => {
+        if (dragTarget && !dragTarget.isMain) {
+            e.preventDefault();
+            dragTarget.x = e.touches[0].clientX;
+            dragTarget.y = e.touches[0].clientY;
         }
-        if (dragTarget && !dragTarget.isMain) dragTarget.dragging = false;
+    }, {passive: false});
+
+    window.addEventListener('touchend', (e) => {
+        if (!dragTarget) return;
+        const duration = Date.now() - touchStartData.t;
+        const dist = Math.hypot(e.changedTouches[0].clientX - touchStartData.x, e.changedTouches[0].clientY - touchStartData.y);
+        if (duration < 250 && dist < 10) window.location.href = dragTarget.url;
+        if (dragTarget) dragTarget.dragging = false;
         dragTarget = null;
     });
 
     window.addEventListener('resize', init);
     init();
-    render();
+    draw();
 </script>
 </body>
 </html>
