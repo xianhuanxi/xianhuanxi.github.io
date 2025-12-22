@@ -3,34 +3,42 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Xitoys - 探索新趣</title>
+    <title>Xitoys - 探索极致</title>
     <style>
         :root {
-            --bg-gradient: linear-gradient(135deg, #ff5f8d 0%, #ff8eaf 100%);
-            --bubble-bg: rgba(255, 255, 255, 0.2);
-            --main-bubble-bg: rgba(255, 255, 255, 0.35);
+            --bg-grad: linear-gradient(180deg, #ff5f8d 0%, #ff8eaf 100%);
         }
 
         body, html {
-            margin: 0;
-            padding: 0;
-            width: 100%;
-            height: 100%;
-            overflow: hidden;
-            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-            background: var(--bg-gradient);
+            margin: 0; padding: 0; width: 100%; height: 100%;
+            overflow: hidden; background: var(--bg-grad);
+            font-family: "PingFang SC", "Microsoft YaHei", sans-serif;
         }
 
-        /* Logo 区域 */
-        .logo {
+        /* 顶部大气 Logo */
+        .header-logo {
             position: absolute;
-            top: 40px;
-            left: 30px;
+            top: 50px;
+            width: 100%;
+            text-align: center;
+            z-index: 10;
+        }
+        .header-logo h1 {
             color: white;
-            font-size: 32px;
+            font-size: 72px; /* 极大 Logo */
             font-style: italic;
-            font-weight: bold;
-            text-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            margin: 0;
+            text-shadow: 0 4px 20px rgba(0,0,0,0.15);
+            letter-spacing: -2px;
+        }
+        .header-logo span { font-size: 24px; vertical-align: bottom; }
+
+        /* 电流画布层 */
+        #electricity {
+            position: absolute;
+            top: 0; left: 0;
+            pointer-events: none; /* 让点击穿过画布传给气泡 */
+            z-index: 2;
         }
 
         /* 气泡通用样式 */
@@ -42,77 +50,128 @@
             justify-content: center;
             color: white;
             text-decoration: none;
-            backdrop-filter: blur(5px);
-            border: 1px solid rgba(255, 255, 255, 0.3);
-            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
-            font-weight: 500;
-            transition: transform 0.3s ease;
-        }
-
-        .bubble:active {
-            transform: scale(0.9);
-        }
-
-        /* 右下角核心气泡（在线购物） */
-        .main-shop-bubble {
-            right: -20px;
-            bottom: -20px;
-            width: 160px;
-            height: 160px;
-            background: var(--main-bubble-bg);
-            z-index: 100;
-            font-size: 18px;
             font-weight: bold;
-            flex-direction: column;
-            animation: breathe 3s infinite ease-in-out;
-            padding-right: 20px;
-            padding-bottom: 20px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+            z-index: 5;
+            transition: transform 0.1s linear;
+            text-align: center;
+            line-height: 1.2;
+            padding: 10px;
         }
 
-        /* 呼吸灯动画 */
+        /* 呼吸动画：大小随时间变大变小 */
         @keyframes breathe {
-            0%, 100% { transform: scale(1); box-shadow: 0 0 20px rgba(255,255,255,0.2); }
-            50% { transform: scale(1.08); box-shadow: 0 0 40px rgba(255,255,255,0.5); }
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.15); }
         }
 
-        /* 随机浮动气泡样式 */
-        .float-bubble {
-            width: 90px;
-            height: 90px;
-            font-size: 14px;
-            background: var(--bubble-bg);
-            animation: float 8s infinite ease-in-out;
+        /* 右下角巨大购物气泡 */
+        .shop-bubble {
+            right: -10%;
+            bottom: -5%;
+            width: 260px; /* 超大气泡 */
+            height: 260px;
+            background: linear-gradient(135deg, #ff0055 0%, #ff5f8d 100%);
+            font-size: 32px;
+            z-index: 100;
+            animation: breathe 3s infinite ease-in-out;
+            border: 4px solid rgba(255,255,255,0.4);
         }
 
-        /* 浮动动画 */
-        @keyframes float {
-            0%, 100% { transform: translate(0, 0); }
-            25% { transform: translate(10px, -20px); }
-            50% { transform: translate(-10px, -40px); }
-            75% { transform: translate(-20px, -10px); }
-        }
-
-        /* 针对不同气泡设置不同的动画时长和延迟，制造随机感 */
-        .b1 { top: 20%; left: 15%; animation-duration: 10s; }
-        .b2 { top: 35%; left: 55%; animation-duration: 12s; animation-delay: -2s; }
-        .b3 { top: 60%; left: 10%; animation-duration: 9s; animation-delay: -4s; }
-        .b4 { top: 55%; left: 60%; animation-duration: 11s; animation-delay: -1s; }
+        /* 其他各异气泡色彩 */
+        .b1 { width: 150px; height: 150px; background: linear-gradient(135deg, #7028ff 0%, #a272ff 100%); font-size: 20px; animation: breathe 4s infinite ease-in-out; }
+        .b2 { width: 130px; height: 130px; background: linear-gradient(135deg, #00d2ff 0%, #3a7bd5 100%); font-size: 18px; animation: breathe 5s infinite ease-in-out -1s; }
+        .b3 { width: 140px; height: 140px; background: linear-gradient(135deg, #ff9a00 0%, #ff4d00 100%); font-size: 20px; animation: breathe 4.5s infinite ease-in-out -2s; }
+        .b4 { width: 120px; height: 120px; background: linear-gradient(135deg, #00f2fe 0%, #4facfe 100%); font-size: 18px; animation: breathe 3.5s infinite ease-in-out -0.5s; }
 
     </style>
 </head>
 <body>
 
-    <div class="logo">Xitoys<span style="font-size: 14px;">.cn</span></div>
+    <div class="header-logo">
+        <h1>Xitoys<span>.cn</span></h1>
+    </div>
 
-    欢喜故事
-    两性科普
-    视频频道
-    我要投资
+    <canvas id="electricity"></canvas>
 
-    <a href="/shop" class="bubble main-shop-bubble">
-        <span>🛒</span>
-        <span>在线购物</span>
-    </a >
+    欢喜<br>故事
+    两性<br>科普
+    视频<br>频道
+    我要<br>投资
 
+    🛒<br>在线购物
+
+    <script>
+        const canvas = document.getElementById('electricity');
+        const ctx = canvas.getContext('2d');
+        const bubbles = document.querySelectorAll('.bubble');
+        
+        // 气泡数据控制
+        let bubbleData = Array.from(bubbles).map(b => ({
+            el: b,
+            x: Math.random() * (window.innerWidth - 100),
+            y: Math.random() * (window.innerHeight - 200) + 100,
+            vx: (Math.random() - 0.5) * 1.5,
+            vy: (Math.random() - 0.5) * 1.5,
+            radius: b.offsetWidth / 2
+        }));
+
+        function resize() {
+            canvas.width = window.innerWidth;
+            canvas.height = window.innerHeight;
+        }
+        window.onresize = resize;
+        resize();
+
+        // 绘制电流电弧效果
+        function drawLightning(x1, y1, x2, y2) {
+            ctx.beginPath();
+            ctx.moveTo(x1, y1);
+            let dist = Math.sqrt((x1-x2)**2 + (y1-y2)**2);
+            if (dist > 300) return; // 距离太远不连线
+
+            let midX = (x1 + x2) / 2 + (Math.random() - 0.5) * 30;
+            let midY = (y1 + y2) / 2 + (Math.random() - 0.5) * 30;
+            
+            ctx.lineTo(midX, midY);
+            ctx.lineTo(x2, y2);
+            ctx.strokeStyle = `rgba(255, 255, 255, ${Math.random() * 0.5})`;
+            ctx.lineWidth = 1.5;
+            ctx.stroke();
+        }
+
+        function animate() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            
+            bubbleData.forEach((b, i) => {
+                // 如果不是主气泡，则移动
+                if (b.el.id !== 'p_main') {
+                    b.x += b.vx;
+                    b.y += b.vy;
+
+                    // 边界反弹
+                    if (b.x < 0 || b.x > canvas.width - b.radius*2) b.vx *= -1;
+                    if (b.y < 150 || b.y > canvas.height - b.radius*2) b.vy *= -1;
+                } else {
+                    // 主气泡位置固定在右下
+                    b.x = canvas.width - b.radius * 1.5;
+                    b.y = canvas.height - b.radius * 1.5;
+                }
+
+                b.el.style.left = b.x + 'px';
+                b.el.style.top = b.y + 'px';
+
+                // 给相邻气泡绘制电流
+                for (let j = i + 1; j < bubbleData.length; j++) {
+                    let b2 = bubbleData[j];
+                    drawLightning(b.x + b.radius, b.y + b.radius, b2.x + b2.radius, b2.y + b2.radius);
+                }
+            });
+
+            requestAnimationFrame(animate);
+        }
+
+        animate();
+    </script>
 </body>
 </html>
