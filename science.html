@@ -1,1 +1,120 @@
-正在搭建中
+<!DOCTYPE html>
+<html>
+<head>
+    <title>3D Interaction Card Flow</title>
+    <script src="https://cdn.jsdelivr.net/npm/@mediapipe/hands/hands.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@mediapipe/camera_utils/camera_utils.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
+    <style>
+        body { margin: 0; overflow: hidden; background: #000; font-family: sans-serif; }
+        #video-container { position: fixed; width: 100%; height: 100%; z-index: -1; transform: scaleX(-1); }
+        #info { position: fixed; top: 20px; left: 20px; color: white; background: rgba(0,0,0,0.5); padding: 10px; border-radius: 8px; pointer-events: none; }
+    </style>
+</head>
+<body>
+    <div id="info">正在启动摄像头...<br>食指上下移动：滚动<br>向左快速划：沉底 | 向右快速划：点赞</div>
+    <video id="input_video" style="display:none"></video>
+    <canvas id="three-canvas"></canvas>
+
+    <script>
+        const videoElement = document.getElementById('input_video');
+        const info = document.getElementById('info');
+        let currentScrollY = 0;
+        let cards = [];
+        let currentIndex = 0;
+
+        // --- 1. Three.js 场景设置 ---
+        const scene = new THREE.Scene();
+        const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
+        const renderer = new THREE.WebGLRenderer({ canvas: document.getElementById('three-canvas'), alpha: true });
+        renderer.setSize(window.innerWidth, window.innerHeight);
+        camera.position.z = 5;
+
+        // 创建卡片组
+        const cardGroup = new THREE.Group();
+        scene.add(cardGroup);
+
+        const colors = [0x007aff, 0xff9500, 0x4cd964, 0xff2d55, 0x5856d6];
+        for (let i = 0; i < 10; i++) {
+            const geometry = new THREE.BoxGeometry(3, 4, 0.1);
+            const material = new THREE.MeshStandardMaterial({ 
+                color: colors[i % colors.length], 
+                transparent: true, 
+                opacity: 0.9 
+            });
+            const card = new THREE.Mesh(geometry, material);
+            card.position.y = -i * 4.5;
+            cardGroup.add(card);
+            cards.push(card);
+        }
+
+        const light = new THREE.DirectionalLight(0xffffff, 1);
+        light.position.set(0, 0, 10);
+        scene.add(light);
+        scene.add(new THREE.AmbientLight(0x404040));
+
+        // --- 2. 手势识别逻辑 ---
+        let lastX = 0.5;
+        const hands = new Hands({locateFile: (file) => `https://cdn.jsdelivr.net/npm/@mediapipe/hands/${file}`});
+        
+        hands.setOptions({ maxNumHands: 1, modelComplexity: 1, minDetectionConfidence: 0.5, minTrackingConfidence: 0.5 });
+        hands.onResults((results) => {
+            if (results.multiHandLandmarks && results.multiHandLandmarks.length > 0) {
+                info.innerText = "手势已连接：移动食指控制";
+                const landmark = results.multiHandLandmarks[0][8]; // 食指指尖
+                
+                // 垂直滚动映射 (反向适应视觉)
+                const targetY = (landmark.y - 0.5) * 10;
+                gsap.to(cardGroup.position, { y: targetY + (currentIndex * 4.5), duration: 0.3 });
+
+                // 左右挥动判定
+                const deltaX = landmark.x - lastX;
+                if (deltaX > 0.1) { // 向左划 (注意镜像)
+                    handleSwipeLeft();
+                } else if (deltaX < -0.1) { // 向右划
+                    handleSwipeRight();
+                }
+                lastX = landmark.x;
+            }
+        });
+
+        const cameraInstance = new Camera(videoElement, {
+            onFrame: async () => { await hands.send({image: videoElement}); },
+            width: 640, height: 480
+        });
+        cameraInstance.start();
+
+        // --- 3. 交互动作 ---
+        function handleSwipeLeft() {
+            const card = cards[currentIndex];
+            if(!card || gsap.isTweening(card.position)) return;
+            // 沉底动画
+            gsap.to(card.position, { x: -10, z: -5, duration: 0.6, ease: "power2.in" });
+            gsap.to(card.material, { opacity: 0, duration: 0.6 });
+            currentIndex++;
+        }
+
+        function handleSwipeRight() {
+            const card = cards[currentIndex];
+            if(!card || gsap.isTweening(card.position)) return;
+            // 点赞置顶动画
+            gsap.to(card.position, { x: 10, z: 2, rotationY: -0.5, duration: 0.6, ease: "back.out" });
+            currentIndex++;
+        }
+
+        // --- 4. 渲染循环 ---
+        function animate() {
+            requestAnimationFrame(animate);
+            renderer.render(scene, camera);
+        }
+        animate();
+
+        window.addEventListener('resize', () => {
+            camera.aspect = window.innerWidth / window.innerHeight;
+            camera.updateProjectionMatrix();
+            renderer.setSize(window.innerWidth, window.innerHeight);
+        });
+    </script>
+</body>
+</html>
