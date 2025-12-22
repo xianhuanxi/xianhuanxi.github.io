@@ -1,119 +1,329 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>3D Interaction Card Flow</title>
+    <title>3D Interaction Card Flow (CSS3D)</title>
     <script src="https://cdn.jsdelivr.net/npm/@mediapipe/hands/hands.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/@mediapipe/camera_utils/camera_utils.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
+    <script src="https://threejs.org/examples/js/renderers/CSS3DRenderer.js"></script>
     <style>
-        body { margin: 0; overflow: hidden; background: #000; font-family: sans-serif; }
-        #video-container { position: fixed; width: 100%; height: 100%; z-index: -1; transform: scaleX(-1); }
-        #info { position: fixed; top: 20px; left: 20px; color: white; background: rgba(0,0,0,0.5); padding: 10px; border-radius: 8px; pointer-events: none; }
+        body { margin: 0; overflow: hidden; background: #000; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen, Ubuntu, Cantarell, "Open Sans", "Helvetica Neue", sans-serif; }
+        #video-background { position: fixed; width: 100%; height: 100%; object-fit: cover; z-index: -2; transform: scaleX(-1); } /* 摄像头背景 */
+        #three-canvas { position: fixed; top: 0; left: 0; z-index: -1; } /* Three.js 渲染层 */
+        #css3d-container { position: absolute; width: 100%; height: 100%; overflow: hidden; } /* CSS3DRenderer 容器 */
+
+        #info { position: fixed; top: 20px; left: 20px; color: white; background: rgba(0,0,0,0.5); padding: 10px; border-radius: 8px; pointer-events: none; z-index: 100; }
+
+        /* 卡片样式 */
+        .card-wrapper {
+            width: 350px; /* 模拟微信文章卡片宽度 */
+            height: auto; /* 高度自适应 */
+            background: white;
+            border-radius: 12px;
+            overflow: hidden;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+            padding-bottom: 20px; /* 底部留白，模拟内容间距 */
+            transform: translate(-50%, -50%); /* 确保元素中心在 Three.js 对象中心 */
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+        .card-image {
+            width: calc(100% - 40px); /* 减去左右padding */
+            height: 200px; /* 图片固定高度 */
+            margin: 20px 20px 0 20px;
+            border-radius: 8px;
+            object-fit: cover;
+            object-position: center;
+        }
+        .card-content {
+            padding: 15px 20px;
+            width: 100%;
+            box-sizing: border-box;
+        }
+        .card-title {
+            font-size: 20px;
+            font-weight: bold;
+            color: #333;
+            margin: 0;
+            white-space: nowrap; /* 确保标题一行 */
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+        .card-subtitle {
+            font-size: 14px;
+            color: #666;
+            margin-top: 5px;
+            white-space: nowrap; /* 确保简介一行 */
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+        .card-date {
+            font-size: 12px;
+            color: #999;
+            text-align: center;
+            margin: 15px 0;
+        }
     </style>
 </head>
 <body>
-    <div id="info">正在启动摄像头...<br>食指上下移动：滚动<br>向左快速划：沉底 | 向右快速划：点赞</div>
-    <video id="input_video" style="display:none"></video>
-    <canvas id="three-canvas"></canvas>
-
-    <script>
-        const videoElement = document.getElementById('input_video');
+    <video id="video-background" autoplay playsinline></video>
+    <div id="info">正在启动摄像头...<br>请在本地服务器上运行此页面。<br>食指上下移动：滚动<br>向左快速划：沉底 | 向右快速划：点赞</div>
+    <div id="css3d-container"></div> <script>
+        const videoElement = document.getElementById('video-background');
         const info = document.getElementById('info');
-        let currentScrollY = 0;
-        let cards = [];
-        let currentIndex = 0;
+        const css3dContainer = document.getElementById('css3d-container');
 
-        // --- 1. Three.js 场景设置 ---
+        let css3dObjects = []; // 存储 CSS3DObject
+        let currentScrollY = 0; // 当前滚动位置
+        let currentIndex = 0; // 当前激活的卡片索引 (用于沉底/点赞)
+        const CARD_HEIGHT_VIEWPORT = 0.6; // 单个卡片在 Three.js 场景中的高度 (大概占据视口高度的比例)
+        const CARD_GAP_VIEWPORT = 0.05; // 卡片间距
+
+        // --- 1. Three.js 和 CSS3DRenderer 设置 ---
         const scene = new THREE.Scene();
         const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
-        const renderer = new THREE.WebGLRenderer({ canvas: document.getElementById('three-canvas'), alpha: true });
-        renderer.setSize(window.innerWidth, window.innerHeight);
-        camera.position.z = 5;
+        camera.position.z = 1000; // 调整 Z 轴，让 CSS3DObject 在这里可见
 
-        // 创建卡片组
-        const cardGroup = new THREE.Group();
-        scene.add(cardGroup);
+        // CSS3DRenderer 负责渲染 HTML 元素
+        const css3dRenderer = new THREE.CSS3DRenderer();
+        css3dRenderer.setSize(window.innerWidth, window.innerHeight);
+        css3dRenderer.domElement.style.position = 'absolute';
+        css3dRenderer.domElement.style.top = '0px';
+        css3dContainer.appendChild(css3dRenderer.domElement);
 
-        const colors = [0x007aff, 0xff9500, 0x4cd964, 0xff2d55, 0x5856d6];
-        for (let i = 0; i < 10; i++) {
-            const geometry = new THREE.BoxGeometry(3, 4, 0.1);
-            const material = new THREE.MeshStandardMaterial({ 
-                color: colors[i % colors.length], 
-                transparent: true, 
-                opacity: 0.9 
-            });
-            const card = new THREE.Mesh(geometry, material);
-            card.position.y = -i * 4.5;
-            cardGroup.add(card);
-            cards.push(card);
+        // 创建 Three.js WebGLRenderer (可选，用于背景或叠加效果，这里暂时不用)
+        const webglRenderer = new THREE.WebGLRenderer({ alpha: true }); // alpha:true 让背景透明
+        webglRenderer.setSize(window.innerWidth, window.innerHeight);
+        webglRenderer.domElement.style.position = 'absolute';
+        webglRenderer.domElement.style.top = '0px';
+        // document.body.appendChild(webglRenderer.domElement); // 如果不需要叠加其他3D元素，可以不添加
+
+        // --- 2. 模拟文章数据和卡片生成 ---
+        const articles = [
+            { id: 1, date: "2024年2月7日 18:06", image: "https://i.ibb.co/5c0Y1vJ/hongbao.jpg", title: "新年福利 | 限量200个红包封面！", subtitle: "最后200个龙年红包封面！！速领！！拼手速！" },
+            { id: 2, date: "2024年1月25日 10:30", image: "https://i.ibb.co/S68v6yG/citywalk.jpg", title: "百位顾客 | Citywalk 亲密打卡", subtitle: "我们将抽取一位幸运小伙伴送出司沃康产品一个哦！" },
+            { id: 3, date: "2024年1月10日 09:00", image: "https://i.ibb.co/3kXpYvG/product1.jpg", title: "新品发布！酷炫颜值，非凡体验", subtitle: "探索极致，享受科技带来的全新快感！" },
+            { id: 4, date: "2023年12月28日 15:45", image: "https://i.ibb.co/Q8Wz85H/product2.jpg", title: "冬季限定 | 温暖随行，呵护备至", subtitle: "让这个冬天充满爱与关怀，温暖你的身心！" },
+            { id: 5, date: "2023年12月15日 11:20", image: "https://i.ibb.co/F8Yw65f/event1.jpg", title: "会员专享 | 双倍积分，限时领取", subtitle: "加入会员，享受更多福利，积分狂飙不是梦！" },
+            { id: 6, date: "2023年11月30日 14:00", image: "https://i.ibb.co/1q20KzP/event2.jpg", title: "周年庆典 | 惊喜连连，不容错过", subtitle: "与我们一同庆祝，精彩好礼等你来拿！" },
+            { id: 7, date: "2023年11月10日 09:30", image: "https://i.ibb.co/3sX8c7R/tech1.jpg", title: "未来科技 | 智能生活，触手可及", subtitle: "解锁智能新纪元，体验前所未有的便捷！" },
+            { id: 8, date: "2023年10月25日 16:10", image: "https://i.ibb.co/P4w8L2c/tech2.jpg", title: "健康生活 | 运动伴侣，活力无限", subtitle: "科学运动，健康生活，从现在开始！" },
+            { id: 9, date: "2023年10月1日 08:00", image: "https://i.ibb.co/d5m0n5P/art1.jpg", title: "艺术之美 | 灵感碰撞，火花四射", subtitle: "感受艺术的魅力，激发无限创意！" },
+            { id: 10, date: "2023年9月15日 13:00", image: "https://i.ibb.co/JnjQ1Yx/art2.jpg", title: "品质生活 | 精致格调，品味非凡", subtitle: "追求卓越，享受高品质的每一个瞬间！" },
+            { id: 11, date: "2023年8月30日 17:00", image: "https://i.ibb.co/5k0b7J5/nature1.jpg", title: "自然探索 | 秘境之旅，发现新奇", subtitle: "走进大自然，感受生命的律动和神奇！" },
+            { id: 12, date: "2023年8月10日 10:00", image: "https://i.ibb.co/Y0P74Xw/nature2.jpg", title: "绿色环保 | 守护地球，践行责任", subtitle: "从小事做起，为环境保护贡献一份力量！" },
+            { id: 13, date: "2023年7月25日 14:30", image: "https://i.ibb.co/y4L2s8q/travel1.jpg", title: "环球旅行 | 梦想启程，世界任你游", subtitle: "背起行囊，去看看这个美丽的世界！" },
+            { id: 14, date: "2023年7月5日 11:00", image: "https://i.ibb.co/ZcT6Q5L/travel2.jpg", title: "城市漫步 | 发现角落，别样风情", subtitle: "穿梭街头巷尾，感受城市的独特魅力！" },
+            { id: 15, date: "2023年6月20日 16:00", image: "https://i.ibb.co/K2sY5w4/food1.jpg", title: "美食探店 | 寻味之旅，饕餮盛宴", subtitle: "品尝各地美食，满足你的味蕾！" },
+            { id: 16, date: "2023年6月1日 10:00", image: "https://i.ibb.co/Gdk81Hj/food2.jpg", title: "居家好物 | 提升幸福，点缀生活", subtitle: "让家更温馨，让生活更美好！" },
+            { id: 17, date: "2023年5月15日 15:30", image: "https://i.ibb.co/Rg8wQ7F/finance1.jpg", title: "理财之道 | 智慧投资，财富增值", subtitle: "学会理财，让你的财富不断增长！" },
+            { id: 18, date: "2023年5月1日 09:00", image: "https://i.ibb.co/j32414P/finance2.jpg", title: "职场进阶 | 技能提升，未来可期", subtitle: "不断学习，提升自我，迎接更好的职业发展！" },
+            { id: 19, date: "2023年4月10日 14:00", image: "https://i.ibb.co/r76Kj3W/family1.jpg", title: "亲子时光 | 幸福瞬间，爱意满满", subtitle: "陪伴孩子成长，创造美好的回忆！" },
+            { id: 20, date: "2023年3月25日 11:00", image: "https://i.ibb.co/f4n6m05/family2.jpg", title: "宠物萌物 | 忠实伙伴，治愈心灵", subtitle: "可爱的宠物，带给你无限的欢乐！" }
+        ];
+
+        function createCardElement(article) {
+            const element = document.createElement('div');
+            element.className = 'card-wrapper';
+
+            // 日期
+            const dateDiv = document.createElement('div');
+            dateDiv.className = 'card-date';
+            dateDiv.innerText = article.date;
+            element.appendChild(dateDiv);
+
+            // 主图
+            const img = document.createElement('img');
+            img.className = 'card-image';
+            img.src = article.image;
+            element.appendChild(img);
+
+            // 内容区
+            const contentDiv = document.createElement('div');
+            contentDiv.className = 'card-content';
+            element.appendChild(contentDiv);
+
+            // 标题
+            const title = document.createElement('h3');
+            title.className = 'card-title';
+            title.innerText = article.title;
+            contentDiv.appendChild(title);
+
+            // 简介
+            const subtitle = document.createElement('p');
+            subtitle.className = 'card-subtitle';
+            subtitle.innerText = article.subtitle;
+            contentDiv.appendChild(subtitle);
+            
+            return element;
         }
 
-        const light = new THREE.DirectionalLight(0xffffff, 1);
-        light.position.set(0, 0, 10);
-        scene.add(light);
-        scene.add(new THREE.AmbientLight(0x404040));
+        articles.forEach((article, i) => {
+            const element = createCardElement(article);
+            const css3dObject = new THREE.CSS3DObject(element);
 
-        // --- 2. 手势识别逻辑 ---
-        let lastX = 0.5;
+            // 根据视口高度计算卡片在3D空间中的Y位置
+            // 我们需要知道卡片的真实屏幕像素高度，然后转换到 Three.js 场景单位
+            // 假设卡片宽度为 350px，在视口中宽度为 3.5 THREE单位
+            // 视口高度 Y 范围通常从 -camera.fov_scale 到 +camera.fov_scale
+            // card.height / window.innerHeight 得到卡片占屏幕高度的比例
+            // 再根据 camera.position.z 来推算
+            
+            // 为了简化，我们假设一个固定卡片高度在 3D 空间中的值
+            // 这个值需要根据 camera.position.z 和 fov 来调整
+            const cardHeight3D = (window.innerHeight * CARD_HEIGHT_VIEWPORT) / (2 * Math.tan(camera.fov * Math.PI / 360) * camera.position.z);
+            const cardGap3D = (window.innerHeight * CARD_GAP_VIEWPORT) / (2 * Math.tan(camera.fov * Math.PI / 360) * camera.position.z);
+
+            // 初始 Y 位置，让卡片堆叠起来
+            // 中心位置 (0,0) 对应屏幕中心
+            css3dObject.position.y = (articles.length / 2 - i - 0.5) * (CARD_HEIGHT_VIEWPORT + CARD_GAP_VIEWPORT) * 1000 * 1.2; // 调整乘数来控制间距
+            
+            scene.add(css3dObject);
+            css3dObjects.push(css3dObject);
+        });
+
+        // --- 3. 手势识别逻辑 ---
+        let lastHandY = 0; // 上一帧的手指 Y 坐标 (0-1范围)
+        let lastHandX = 0; // 上一帧的手指 X 坐标 (0-1范围)
+        let cardGroupY = 0; // 整个卡片组的 Y 偏移量
+        let isAnimating = false; // 防止手势动画冲突
+
         const hands = new Hands({locateFile: (file) => `https://cdn.jsdelivr.net/npm/@mediapipe/hands/${file}`});
         
-        hands.setOptions({ maxNumHands: 1, modelComplexity: 1, minDetectionConfidence: 0.5, minTrackingConfidence: 0.5 });
+        hands.setOptions({ maxNumHands: 1, modelComplexity: 1, minDetectionConfidence: 0.7, minTrackingConfidence: 0.7 });
         hands.onResults((results) => {
             if (results.multiHandLandmarks && results.multiHandLandmarks.length > 0) {
                 info.innerText = "手势已连接：移动食指控制";
-                const landmark = results.multiHandLandmarks[0][8]; // 食指指尖
-                
-                // 垂直滚动映射 (反向适应视觉)
-                const targetY = (landmark.y - 0.5) * 10;
-                gsap.to(cardGroup.position, { y: targetY + (currentIndex * 4.5), duration: 0.3 });
+                const handLandmarks = results.multiHandLandmarks[0];
+                const indexFinger = handLandmarks[8]; // 食指指尖
 
-                // 左右挥动判定
-                const deltaX = landmark.x - lastX;
-                if (deltaX > 0.1) { // 向左划 (注意镜像)
-                    handleSwipeLeft();
-                } else if (deltaX < -0.1) { // 向右划
-                    handleSwipeRight();
+                // 转换为屏幕坐标 (0-1)
+                const currentHandY = indexFinger.y;
+                const currentHandX = indexFinger.x;
+
+                if (lastHandY !== 0) { // 避免第一次检测的跳动
+                    const deltaY = currentHandY - lastHandY; // Y轴的变化
+                    // 滚动：将手势Y变化映射到卡片组的Y位置
+                    cardGroupY -= deltaY * 2000; // 调整乘数控制滚动速度
+                    
+                    // 限制滚动范围，防止空白
+                    const totalCardHeight = css3dObjects.length * (CARD_HEIGHT_VIEWPORT + CARD_GAP_VIEWPORT) * 1000 * 1.2;
+                    const visibleHeight = window.innerHeight; // 粗略的可见高度
+                    
+                    const minScrollY = -(totalCardHeight - visibleHeight / 2); // 减去屏幕高度的一半，让最后一卡能滚到中间
+                    const maxScrollY = visibleHeight / 2; // 让第一张卡片能滚到中间
+
+                    cardGroupY = Math.max(minScrollY, Math.min(maxScrollY, cardGroupY));
+
+                    // 平滑滚动
+                    gsap.to(scene.position, { y: -cardGroupY, duration: 0.2, ease: "power1.out" });
                 }
-                lastX = landmark.x;
+
+                // 左右挥动判定 (仅在动画未进行时触发)
+                if (!isAnimating && lastHandX !== 0) {
+                    const swipeThresholdX = 0.15; // X轴挥动阈值
+                    const deltaX = currentHandX - lastHandX;
+
+                    if (deltaX > swipeThresholdX) { // 从右向左挥 (在镜像摄像头中表现为手从左往右移)
+                        handleSwipeLeft();
+                    } else if (deltaX < -swipeThresholdX) { // 从左向右挥
+                        handleSwipeRight();
+                    }
+                }
+                
+                lastHandY = currentHandY;
+                lastHandX = currentHandX;
+            } else {
+                 info.innerText = "正在启动摄像头...<br>未检测到手部，请保持手部在摄像头视野内。";
             }
         });
 
+        // 启动摄像头
         const cameraInstance = new Camera(videoElement, {
             onFrame: async () => { await hands.send({image: videoElement}); },
             width: 640, height: 480
         });
-        cameraInstance.start();
+        cameraInstance.start().then(() => {
+            info.innerText = "摄像头已连接，请开始手势交互。";
+        }).catch(err => {
+            info.innerText = `摄像头启动失败：${err.name} - ${err.message}<br>请确保在本地服务器上运行，并允许摄像头权限。`;
+        });
 
-        // --- 3. 交互动作 ---
+        // --- 4. 交互动作 ---
+        function getVisibleCardIndex() {
+            // 根据当前滚动位置和卡片高度，计算哪张卡片在屏幕中央附近
+            const viewportCenterY = -scene.position.y; // 视口中心在卡片组坐标系中的Y值
+            
+            let closestIndex = 0;
+            let minDistance = Infinity;
+
+            css3dObjects.forEach((obj, i) => {
+                const cardCenterY = obj.position.y;
+                const distance = Math.abs(cardCenterY - viewportCenterY);
+                if (distance < minDistance) {
+                    minDistance = distance;
+                    closestIndex = i;
+                }
+            });
+            return closestIndex;
+        }
+
         function handleSwipeLeft() {
-            const card = cards[currentIndex];
-            if(!card || gsap.isTweening(card.position)) return;
+            if (isAnimating) return;
+            isAnimating = true;
+
+            const targetCardIndex = getVisibleCardIndex();
+            const card = css3dObjects[targetCardIndex];
+            if (!card) { isAnimating = false; return; }
+
             // 沉底动画
-            gsap.to(card.position, { x: -10, z: -5, duration: 0.6, ease: "power2.in" });
-            gsap.to(card.material, { opacity: 0, duration: 0.6 });
-            currentIndex++;
+            gsap.timeline({
+                onComplete: () => {
+                    isAnimating = false;
+                    card.element.style.display = 'none'; // 动画结束后隐藏
+                }
+            })
+            .to(card.position, { x: -window.innerWidth / 2, z: -1000, duration: 0.8, ease: "power2.in" }, 0)
+            .to(card.rotation, { z: -Math.PI / 4, duration: 0.8 }, 0) // 添加旋转
+            .to(card.element.style, { opacity: 0, duration: 0.6 }, 0.2); // 延后一点消失
         }
 
         function handleSwipeRight() {
-            const card = cards[currentIndex];
-            if(!card || gsap.isTweening(card.position)) return;
+            if (isAnimating) return;
+            isAnimating = true;
+
+            const targetCardIndex = getVisibleCardIndex();
+            const card = css3dObjects[targetCardIndex];
+            if (!card) { isAnimating = false; return; }
+
             // 点赞置顶动画
-            gsap.to(card.position, { x: 10, z: 2, rotationY: -0.5, duration: 0.6, ease: "back.out" });
-            currentIndex++;
+            gsap.timeline({
+                onComplete: () => {
+                    isAnimating = false;
+                    // 可选：将这张卡片放到列表最前面或者做其他逻辑处理
+                }
+            })
+            .to(card.position, { x: window.innerWidth / 2, z: 200, duration: 0.8, ease: "back.out(1.7)" }, 0)
+            .to(card.rotation, { z: Math.PI / 4, duration: 0.8, ease: "back.out(1.7)" }, 0) // 添加旋转
+            .to(card.element.style, { scale: 1.2, duration: 0.4, ease: "back.out(1.7)" }, 0); // 放大效果
         }
 
-        // --- 4. 渲染循环 ---
+        // --- 5. 渲染循环 ---
         function animate() {
             requestAnimationFrame(animate);
-            renderer.render(scene, camera);
+            css3dRenderer.render(scene, camera);
+            // webglRenderer.render(scene, camera); // 如果有 Three.js 几何体，需要渲染
         }
         animate();
 
         window.addEventListener('resize', () => {
             camera.aspect = window.innerWidth / window.innerHeight;
             camera.updateProjectionMatrix();
-            renderer.setSize(window.innerWidth, window.innerHeight);
+            
+            css3dRenderer.setSize(window.innerWidth, window.innerHeight);
+            webglRenderer.setSize(window.innerWidth, window.innerHeight);
         });
     </script>
 </body>
