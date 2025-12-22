@@ -1,141 +1,161 @@
 <!DOCTYPE html>
-<html lang="zh">
+<html>
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>3D Article Stream</title>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
+    <title>3D Horizontal Article Feed</title>
     <style>
-        body { margin: 0; overflow: hidden; background: #f0f0f0; font-family: "PingFang SC", sans-serif; }
-        #hint { position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%); 
-                background: rgba(0,0,0,0.6); color: white; padding: 10px 20px; 
-                border-radius: 20px; pointer-events: none; z-index: 100; font-size: 14px; }
+        body { margin: 0; background: #f0f2f5; overflow: hidden; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto; }
+        
+        /* 横向长条卡片样式 (10:4 比例) */
+        .card {
+            width: 500px; 
+            height: 200px; 
+            background: white;
+            border-radius: 10px;
+            box-shadow: 0 5px 20px rgba(0,0,0,0.05);
+            overflow: hidden;
+            cursor: pointer;
+            display: flex; /* 左右布局 */
+            border: 1px solid rgba(0,0,0,0.03);
+            transition: background 0.2s;
+        }
+        .card:hover { background: #fafafa; }
+
+        /* 左侧主图 */
+        .card-img {
+            width: 180px; 
+            height: 100%;
+            background-size: cover;
+            background-position: center;
+            background-color: #eee;
+        }
+
+        /* 右侧文字区 */
+        .card-content { 
+            flex: 1;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            overflow: hidden;
+        }
+        .card-title {
+            font-size: 18px;
+            font-weight: bold;
+            color: #1a1a1a;
+            margin-bottom: 12px;
+            line-height: 1.4;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+        .card-desc {
+            font-size: 14px;
+            color: #666;
+            line-height: 1.6;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
     </style>
 </head>
 <body>
-    <div id="hint">鼠标滚轮滚动 | 点击卡片：左键沉底 / 右键置顶</div>
-    <script>
-        // --- 初始化场景 ---
-        const scene = new THREE.Scene();
-        const camera = new THREE.PerspectiveCamera(45, window.innerWidth / window.innerHeight, 0.1, 1000);
-        const renderer = new THREE.WebGLRenderer({ antialias: true });
-        renderer.setSize(window.innerWidth, window.innerHeight);
-        renderer.setClearColor(0xeeeeee);
-        document.body.appendChild(renderer.domElement);
+    <div id="container"></div>
 
-        camera.position.set(0, 0, 10);
-        const light = new THREE.AmbientLight(0xffffff, 0.8);
-        scene.add(light);
-        const pointLight = new THREE.PointLight(0xffffff, 0.5);
-        pointLight.position.set(5, 5, 5);
-        scene.add(pointLight);
+    <script type="module">
+        import * as THREE from 'https://cdn.skypack.dev/three@0.132.2/build/three.module.js';
+        import { CSS3DRenderer, CSS3DObject } from 'https://cdn.skypack.dev/three@0.132.2/examples/jsm/renderers/CSS3DRenderer.js';
 
-        // --- 生成 20 个卡片数据 ---
-        const cards = [];
-        const cardGroup = new THREE.Group();
-        scene.add(cardGroup);
+        let scene, camera, renderer;
+        let cardObjects = [];
+        let targetY = 0;
+        let currentY = 0;
 
-        function createCardTexture(index) {
-            const canvas = document.createElement('canvas');
-            canvas.width = 512; canvas.height = 320;
-            const ctx = canvas.getContext('2d');
-            
-            // 背景
-            ctx.fillStyle = '#ffffff';
-            ctx.fillRect(0, 0, 512, 320);
-            
-            // 模拟主图
-            ctx.fillStyle = `hsl(${(index * 45) % 360}, 70%, 60%)`;
-            ctx.fillRect(10, 10, 492, 200);
-            
-            // 标题
-            ctx.fillStyle = '#333333';
-            ctx.font = 'bold 28px sans-serif';
-            ctx.fillText(`这是第 ${index + 1} 篇文章的标题`, 20, 245);
-            
-            // 简介
-            ctx.fillStyle = '#888888';
-            ctx.font = '20px sans-serif';
-            ctx.fillText('这是一行简短的文章描述内容，仅展示一行...', 20, 285);
-            
-            return new THREE.CanvasTexture(canvas);
-        }
+        const CARD_STEP = 210; // 高度200 + 10px 间隙
 
-        const CARD_HEIGHT = 3.2;
-        const GAP = 0.2;
+        init();
+        animate();
 
-        for (let i = 0; i < 20; i++) {
-            const geometry = new THREE.PlaneGeometry(5, CARD_HEIGHT);
-            const material = new THREE.MeshStandardMaterial({ 
-                map: createCardTexture(i),
-                transparent: true,
-                roughness: 0.3
-            });
-            const card = new THREE.Mesh(geometry, material);
-            card.position.y = -i * (CARD_HEIGHT + GAP);
-            card.userData = { index: i, active: true };
-            cardGroup.add(card);
-            cards.push(card);
-        }
+        function init() {
+            scene = new THREE.Scene();
+            camera = new THREE.PerspectiveCamera(45, window.innerWidth / window.innerHeight, 1, 5000);
+            camera.position.set(0, 0, 1000);
 
-        // --- 交互逻辑 ---
-        let scrollTarget = 0;
-        let currentIndex = 0;
+            renderer = new CSS3DRenderer();
+            renderer.setSize(window.innerWidth, window.innerHeight);
+            document.getElementById('container').appendChild(renderer.domElement);
 
-        // 滚轮控制上下
-        window.addEventListener('wheel', (e) => {
-            scrollTarget += e.deltaY * 0.005;
-            scrollTarget = Math.max(0, Math.min(scrollTarget, (cards.length - 3) * (CARD_HEIGHT + GAP)));
-        });
+            // 生成 20 个虚拟条目
+            for (let i = 0; i < 20; i++) {
+                const element = document.createElement('div');
+                element.className = 'card';
+                element.innerHTML = `
+                    <div class="card-img" style="background-image: url('https://picsum.photos/seed/${i+200}/300/300')"></div>
+                    <div class="card-content">
+                        <div class="card-title">深度解读文章 #${i + 1} 的标题内容</div>
+                        <div class="card-desc">这里是为您整理的文章核心摘要，展示效果仅限一行...</div>
+                    </div>
+                `;
 
-        // 模拟点击交互 (左键沉底，右键置顶)
-        window.addEventListener('mousedown', (e) => {
-            // 这里简单处理：点击当前的第一个卡片
-            const activeCards = cards.filter(c => c.userData.active);
-            if (activeCards.length === 0) return;
-            const topCard = activeCards[0];
+                element.onclick = () => {
+                    window.open('https://example.com/article/' + i, '_blank');
+                };
 
-            if (e.button === 0) { // 左键：向左沉底
-                topCard.userData.active = false;
-                gsap.to(topCard.position, { x: -8, z: -5, y: topCard.position.y - 2, duration: 0.8, ease: "power2.inOut" });
-                gsap.to(topCard.rotation, { y: 0.5, z: 0.2, duration: 0.8 });
-                gsap.to(topCard.material, { opacity: 0, duration: 0.7 });
-            } else if (e.button === 2) { // 右键：向右置顶
-                topCard.userData.active = false;
-                gsap.to(topCard.position, { x: 8, z: 5, y: topCard.position.y + 2, duration: 0.8, ease: "back.out" });
-                gsap.to(topCard.rotation, { y: -0.5, duration: 0.8 });
-                gsap.to(topCard.material, { opacity: 0, duration: 0.7 });
+                const object = new CSS3DObject(element);
+                object.position.y = -i * CARD_STEP;
+                scene.add(object);
+                cardObjects.push(object);
             }
-        });
-        window.addEventListener('contextmenu', e => e.preventDefault());
 
-        // --- 渲染循环 ---
+            // 交互监听
+            window.addEventListener('wheel', (e) => {
+                targetY += e.deltaY * 0.6;
+                limitScroll();
+            }, { passive: false });
+
+            let startTouchY = 0;
+            window.addEventListener('touchstart', (e) => startTouchY = e.touches[0].clientY);
+            window.addEventListener('touchmove', (e) => {
+                const delta = startTouchY - e.touches[0].clientY;
+                targetY += delta * 1.5;
+                startTouchY = e.touches[0].clientY;
+                limitScroll();
+            });
+
+            window.addEventListener('resize', onWindowResize);
+        }
+
+        function limitScroll() {
+            const maxScroll = (cardObjects.length - 2) * CARD_STEP;
+            targetY = Math.max(0, Math.min(targetY, maxScroll));
+        }
+
+        function onWindowResize() {
+            camera.aspect = window.innerWidth / window.innerHeight;
+            camera.updateProjectionMatrix();
+            renderer.setSize(window.innerWidth, window.innerHeight);
+        }
+
         function animate() {
             requestAnimationFrame(animate);
+            currentY += (targetY - currentY) * 0.1;
             
-            // 平滑滚动效果
-            cardGroup.position.y = THREE.MathUtils.lerp(cardGroup.position.y, scrollTarget, 0.1);
-            
-            // 简单的悬浮透视感
-            cards.forEach(card => {
-                if (card.userData.active) {
-                    const dist = Math.abs(card.position.y - (cardGroup.position.y - 2));
-                    // 越靠近中心越亮，模拟聚焦
-                    card.material.emissive.setScalar(THREE.MathUtils.lerp(0.1, 0, dist * 0.2));
-                }
+            cardObjects.forEach((obj, i) => {
+                const relativeY = (-i * CARD_STEP) + currentY;
+                obj.position.y = relativeY;
+                
+                // 3D 效果：根据距离中心的远近进行微小的旋转和深度偏移
+                const distFromCenter = Math.abs(relativeY);
+                obj.position.z = -distFromCenter * 0.2; // 越远越靠后
+                obj.rotation.x = relativeY * 0.0003;    // 微弱的滚筒旋转感
+                
+                // 透明度处理
+                const opacity = 1 - (distFromCenter / 1200);
+                obj.element.style.opacity = Math.max(0.1, opacity);
             });
 
             renderer.render(scene, camera);
         }
-        animate();
-
-        // 窗口自适应
-        window.addEventListener('resize', () => {
-            camera.aspect = window.innerWidth / window.innerHeight;
-            camera.updateProjectionMatrix();
-            renderer.setSize(window.innerWidth, window.innerHeight);
-        });
     </script>
 </body>
 </html>
