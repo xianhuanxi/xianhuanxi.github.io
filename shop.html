@@ -1,57 +1,75 @@
 <!DOCTYPE html>
-<html>
+<html lang="zh-CN">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>正在跳转小程序...</title>
+    <title>正在跳转...</title>
+    <style>
+        /* CSS 层级排列：确保按钮无论如何都在最前面 */
+        body { font-family: sans-serif; margin: 0; padding: 0; background: #fff; text-align: center; }
+        .container { width: 100%; padding-top: 50px; }
+        
+        /* 客服电话 */
+        .phone-num { font-size: 32px; font-weight: bold; margin: 10px 0 30px; display: block; }
+        
+        /* 按钮通用：确保宽度和高度足够点击 */
+        .btn {
+            display: flex; align-items: center; justify-content: center;
+            width: 85%; height: 55px; margin: 15px auto;
+            border-radius: 12px; font-size: 18px; font-weight: bold;
+            text-decoration: none; border: none; cursor: pointer;
+        }
+
+        /* 按钮 A: 拨号 (灰色) */
+        .btn-call { background-color: #f2f2f2; color: #333; }
+        
+        /* 按钮 B: 微信 (绿色) */
+        .btn-wechat { background-color: #07c160; color: white; }
+        
+        /* 按钮 C: 商城 (红色/橙色 - 位于红框位置) */
+        .btn-shop { 
+            background-color: #ff5000; color: white; 
+            margin-top: 60px; /* 增加间距，对应底部位置 */
+            box-shadow: 0 4px 12px rgba(255,80,0,0.2); 
+        }
+
+        .tips { color: #999; font-size: 13px; margin-top: 10px; }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <div style="color:#888;">客服联系电话</div>
+        <div class="phone-num">177 8910 3723</div>
+
+        拨打客服电话
+
+        <button onclick="doCopy()" id="btn_wechat" class="btn btn-wechat">添加客服微信</button>
+
+        
+        
+        <div class="tips">若系统未自动弹出跳转提示，请点击上方按钮</div>
+    </div>
+
+    <input type="text" id="copyText" value="17789103723" style="position:fixed; left:-999px;" readonly>
+
     <script>
-        // 定义微信URL Scheme
-        var weixinScheme = 'weixin://dl/business/?t=v5Q7x4CT0xq';
+        // 1. 自动跳转指令（辅助性，即便失败也不影响上面按钮显示）
+        var scheme = 'weixin://dl/business/?t=v5Q7x4CT0xq';
         
-        // 页面加载后立即尝试跳转
-        window.onload = function() {
-            // 尝试用 iframe 方式唤醒（兼容一些安卓环境）
-            var iframe = document.createElement('iframe');
-            iframe.style.display = 'none';
-            iframe.src = weixinScheme;
-            document.body.appendChild(iframe);
-            
-            // 设置一个计时器，如果跳转失败，则显示提示信息
-            setTimeout(function() {
-                var isWeixin = /MicroMessenger/i.test(navigator.userAgent);
-                var tipsDiv = document.getElementById('tips');
-                
-                if (isWeixin) {
-                    // 在微信内，通常应该能成功，如果还看到提示说明失败了
-                    tipsDiv.innerHTML = '<p>跳转失败，请在微信中打开。</p><p>复制电话，添加客服微信：</p>';
-                } else {
-                    // 在非微信环境（如手机浏览器），给出明确引导
-                    tipsDiv.innerHTML = '<p>检测到您在非微信环境中打开。</p><p><strong>请按以下步骤操作：</strong></p><p>1. 点击下方按钮复制链接</p><p>2. 打开微信</p><p>3. 将链接粘贴到微信对话框并发送</p><p>4. 点击发送出来的链接即可打开小程序</p>';
-                }
-                
-                // 显示一个可复制的链接
-                var linkDiv = document.getElementById('copyLink');
-                linkDiv.style.display = 'block';
-                linkDiv.innerHTML = '<input type="text" id="schemeLink" value="' + 17789103723 + '" readonly style="width:80%; padding:8px;"><button onclick="copyLink()">复制链接</button>';
-                
-            }, 1500); // 等待1.5秒，如果没跳走就显示提示
-        };
-        
-        function copyLink() {
-            var copyInput = document.getElementById('schemeLink');
-            copyInput.select();
-            copyInput.setSelectionRange(0, 99999); // 兼容移动端
-            document.execCommand('copy');
-            alert('链接已复制到剪贴板！');
+        // 延迟 1 秒尝试自动跳转，给系统弹窗留出时间，且不卡住页面渲染
+        setTimeout(function() {
+            window.location.href = scheme;
+        }, 1000);
+
+        // 2. 复制函数逻辑
+        function doCopy() {
+            var input = document.getElementById("copyText");
+            input.select();
+            input.setSelectionRange(0, 99999);
+            document.execCommand("copy");
+            alert("客服微信号已复制：17789103723\n请前往微信添加");
         }
     </script>
-</head>
-<body style="text-align:center; padding-top:50px; font-family:sans-serif;">
-    <h3>正在启动微信小程序...</h3>
-    <div id="tips">
-        <p>如果长时间没有跳转，请稍等片刻或查看下方指引。</p>
-    </div>
-    <div id="copyLink" style="display:none; margin-top:20px;"></div>
 </body>
 </html>
-
