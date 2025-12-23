@@ -85,7 +85,7 @@
     </style>
 </head>
 <body>
-    <div class="card" id="fallback">
+    <div class="card">
         <h1>欢迎进入欢喜生活馆</h1>
 
         <div class="phone">客服电话：<br>17789103723</div>
@@ -95,7 +95,7 @@
             <button class="add-wx-btn" onclick="addWechat()">添加微信</button>
         </div>
 
-        <button class="launch-btn" onclick="launchWithDelay()">打开微信商城</button>
+        <button class="launch-btn" onclick="launchImmediatelyWithBlank()">打开微信商城</button>
 
         <p id="copy-msg">号码已复制，微信搜索添加客服</p >
     </div>
@@ -103,23 +103,18 @@
     <script>
         var scheme = 'weixin://dl/business/?t=v5Q7x4CT0xq';
         var wechatId = '17789103723';  // 如微信号不同，请修改此处
-        var delayTimer;
 
-        // 核心函数：点击按钮或首次加载时，先白屏5秒再尝试拉起
-        function launchWithDelay() {
-            // 先隐藏页面（白屏）
+        // 核心函数：立即拉起 + 白屏5秒后显示页面
+        function launchImmediatelyWithBlank() {
+            // 第1步：0延时立即尝试拉起小程序
+            window.location.href = scheme;
+
+            // 第2步：隐藏页面（保持白屏）
             document.body.classList.remove('visible');
 
-            // 清除可能残留的提示
-            document.getElementById('copy-msg').style.display = 'none';
-
-            // 延时5秒后尝试拉起小程序
-            delayTimer = setTimeout(function() {
-                window.location.href = scheme;
-                // 再延时一点点显示页面（防止瞬间成功跳转时闪现）
-                setTimeout(function() {
-                    document.body.classList.add('visible');
-                }, 800);
+            // 第3步：5秒后若未成功跳转，才显示备用界面
+            setTimeout(function() {
+                document.body.classList.add('visible');
             }, 5000);
         }
 
@@ -138,15 +133,13 @@
             });
         }
 
-        // 页面首次加载时执行
+        // 页面加载完成即执行：立即拉起 + 白屏5秒
         window.onload = function() {
-            launchWithDelay();  // 自动触发一次白屏5秒 + 拉起
+            launchImmediatelyWithBlank();
         };
 
-        // 如果用户从后台切回或取消授权回来，也显示内容
+        // 用户从微信授权取消后返回页面时，直接显示内容
         window.onpageshow = function() {
-            clearTimeout(delayTimer);
-            // 如果已经过了5秒还没跳转成功，就直接显示
             setTimeout(function() {
                 document.body.classList.add('visible');
             }, 500);
