@@ -7,92 +7,120 @@
     <style>
         body {
             font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
-            text-align: center;
-            padding: 40px 20px;
-            background: #f8f8f8;
+            background: #f5f5f7;
             margin: 0;
-            opacity: 0; /* 初始完全透明 */
-            transition: opacity 0.6s ease-in; /* 渐显动画 */
+            padding: 20px 15px;
+            min-height: 100vh;
+            box-sizing: border-box;
+            opacity: 0; /* 初始完全透明白屏 */
+            transition: opacity 0.6s ease-in;
         }
         .visible { opacity: 1; }
 
-        .container {
+        .card {
+            background: white;
+            border-radius: 20px;
+            padding: 40px 30px;
             max-width: 400px;
             margin: 0 auto;
-            background: white;
-            padding: 40px 30px;
-            border-radius: 16px;
-            box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+            box-shadow: 0 4px 20px rgba(0,0,0,0.08);
+            text-align: center;
         }
         h1 {
-            font-size: 24px;
+            font-size: 26px;
             color: #333;
-            margin-bottom: 30px;
-        }
-        .launch-btn {
-            background: #07c160;
-            color: white;
-            border: none;
-            padding: 16px 40px;
-            font-size: 18px;
-            border-radius: 50px;
-            margin-bottom: 40px;
-            cursor: pointer;
-            box-shadow: 0 4px 10px rgba(7,193,96,0.3);
+            margin: 0 0 40px 0;
+            font-weight: 600;
         }
         .phone {
-            font-size: 28px;
+            font-size: 32px;
             font-weight: bold;
             color: #000;
-            margin: 30px 0;
+            margin: 40px 0 50px 0;
+        }
+        .btn-group {
+            display: flex;
+            justify-content: center;
+            gap: 20px;
+            margin-bottom: 60px;
         }
         .btn-group button {
-            width: 45%;
-            padding: 14px;
+            flex: 1;
+            max-width: 160px;
+            padding: 16px;
             font-size: 17px;
+            font-weight: 600;
             border: none;
-            border-radius: 12px;
-            margin: 10px 2%;
+            border-radius: 50px;
             cursor: pointer;
         }
         .call-btn {
             background: #07c160;
             color: white;
+            box-shadow: 0 4px 10px rgba(7,193,96,0.3);
         }
         .add-wx-btn {
             background: #ff9900;
             color: white;
+            box-shadow: 0 4px 10px rgba(255,153,0,0.3);
+        }
+        .launch-btn {
+            background: #07c160;
+            color: white;
+            border: none;
+            padding: 18px 50px;
+            font-size: 19px;
+            font-weight: 600;
+            border-radius: 50px;
+            cursor: pointer;
+            box-shadow: 0 6px 15px rgba(7,193,96,0.4);
         }
         #copy-msg {
             color: #07c160;
             font-size: 16px;
-            margin-top: 15px;
+            margin-top: 20px;
             display: none;
+            font-weight: 500;
         }
     </style>
 </head>
 <body>
-    <div class="container" id="fallback">
+    <div class="card" id="fallback">
         <h1>欢迎进入欢喜生活馆</h1>
-        <button class="launch-btn" onclick="launchMiniProgram()">打开微信商城</button>
 
-        <div class="phone">客服电话：17789103723</div>
+        <div class="phone">客服电话：<br>17789103723</div>
 
         <div class="btn-group">
             <button class="call-btn" onclick="callPhone()">拨打电话</button>
             <button class="add-wx-btn" onclick="addWechat()">添加微信</button>
         </div>
 
+        <button class="launch-btn" onclick="launchWithDelay()">打开微信商城</button>
+
         <p id="copy-msg">号码已复制，微信搜索添加客服</p >
     </div>
 
     <script>
         var scheme = 'weixin://dl/business/?t=v5Q7x4CT0xq';
-        var fallbackTimer;
-        var wechatId = '17789103723';  // 微信号与电话相同，可修改
+        var wechatId = '17789103723';  // 如微信号不同，请修改此处
+        var delayTimer;
 
-        function launchMiniProgram() {
-            window.location.href = scheme;
+        // 核心函数：点击按钮或首次加载时，先白屏5秒再尝试拉起
+        function launchWithDelay() {
+            // 先隐藏页面（白屏）
+            document.body.classList.remove('visible');
+
+            // 清除可能残留的提示
+            document.getElementById('copy-msg').style.display = 'none';
+
+            // 延时5秒后尝试拉起小程序
+            delayTimer = setTimeout(function() {
+                window.location.href = scheme;
+                // 再延时一点点显示页面（防止瞬间成功跳转时闪现）
+                setTimeout(function() {
+                    document.body.classList.add('visible');
+                }, 800);
+            }, 5000);
         }
 
         function callPhone() {
@@ -102,29 +130,26 @@
         function addWechat() {
             navigator.clipboard.writeText(wechatId).then(function() {
                 document.getElementById('copy-msg').style.display = 'block';
-                // 3秒后自动隐藏提示
                 setTimeout(function() {
                     document.getElementById('copy-msg').style.display = 'none';
-                }, 3000);
+                }, 4000);
             }).catch(function() {
                 alert('复制失败，请手动长按复制：' + wechatId);
             });
         }
 
+        // 页面首次加载时执行
         window.onload = function() {
-            // 立即尝试拉起小程序
-            launchMiniProgram();
-
-            // 5秒后如果页面还在，说明用户未允许跳转，显示fallback界面
-            fallbackTimer = setTimeout(function() {
-                document.body.classList.add('visible');
-            }, 5000);
+            launchWithDelay();  // 自动触发一次白屏5秒 + 拉起
         };
 
-        // 如果用户中途返回页面（例如取消了授权后回来），也显示内容
+        // 如果用户从后台切回或取消授权回来，也显示内容
         window.onpageshow = function() {
-            clearTimeout(fallbackTimer);
-            document.body.classList.add('visible');
+            clearTimeout(delayTimer);
+            // 如果已经过了5秒还没跳转成功，就直接显示
+            setTimeout(function() {
+                document.body.classList.add('visible');
+            }, 500);
         };
     </script>
 </body>
