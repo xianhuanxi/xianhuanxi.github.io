@@ -3,7 +3,9 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>欢喜生活馆，两性健康专家</title>
+    <title>
+        欢喜生活馆
+    </title>
     <script src="https://cdn.jsdelivr.net/npm/web-animations-js@2.3.2/web-animations.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/muuri@0.9.5/dist/muuri.min.js"></script>
     
@@ -12,192 +14,116 @@
             --col-width: 0px; 
             --gutter: 18px; 
             --label-height: 26px;
-            /* 1. 阴影变深：增加扩散与透明度，强化浮空感 */
-            --float-shadow: 0 15px 35px rgba(0, 0, 0, 0.2);
+            --float-shadow: 0 12px 30px rgba(0, 0, 0, 0.12);
         }
 
         body {
             margin: 0; padding: 0;
-            /* 2. 背景产量：色彩对比度略微增强 */
-            background: linear-gradient(135deg, #d8b4fe 0%, #7db9f8 100%);
+            /* 底色蒙白：原色为主，亮度提升 */
+            background: linear-gradient(rgba(255, 255, 255, 0.5), rgba(255, 255, 255, 0.5)), 
+                        linear-gradient(135deg, #d8b4fe 0%, #7db9f8 100%);
             min-height: 100vh;
-            font-family: -apple-system, "SF Pro Display", sans-serif;
-            overflow-x: hidden;
-            touch-action: pan-y; 
+            font-family: -apple-system, sans-serif;
+            overflow-x: hidden; touch-action: pan-y; 
             user-select: none; -webkit-user-select: none;
         }
 
-        body::before {
-            content: ""; position: fixed; top: 0; left: 0; right: 0; bottom: 0;
-            background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.8' numOctaves='3'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)' opacity='0.05'/%3E%3C/svg%3E");
-            pointer-events: none; z-index: -1;
-        }
-
-        #pull-down-header {
-            position: fixed; top: 0; left: 0; width: 100%; height: 100px;
-            display: flex; justify-content: center; align-items: center;
-            z-index: 1000; pointer-events: none;
-            transform: translateY(-100px);
-        }
-        .logo-box {
-            width: 90%; height: 75px; background: rgba(255, 94, 120, 0.85); border-radius: 24px;
-            backdrop-filter: blur(15px); box-shadow: 0 12px 30px rgba(255, 94, 120, 0.3);
-            display: flex; justify-content: center; align-items: center; opacity: 0;
-        }
-        .logo-text { color: white; font-size: 38px; font-weight: 900; font-style: italic; }
-
-        #main-wrapper { will-change: transform; transition: transform 0.4s ease-out; }
         .grid { position: relative; margin: 0 auto; padding: 20px 10px 300px; box-sizing: border-box; }
-
-        .item { position: absolute; padding: calc(var(--gutter) / 2); box-sizing: border-box; touch-action: pan-y; cursor: pointer; }
-        .item-content { position: relative; width: 100%; height: 100%; display: flex; flex-direction: column; }
+        .item { position: absolute; padding: calc(var(--gutter) / 2); box-sizing: border-box; }
+        .item-content { width: 100%; height: 100%; display: flex; flex-direction: column; }
         
         .card {
             width: 100%; flex-grow: 1; border-radius: 28px;
-            /* 透明度不变，边框高光微调 */
-            background: rgba(255, 255, 255, 0.12);
-            backdrop-filter: blur(40px) saturate(180%); -webkit-backdrop-filter: blur(40px) saturate(180%);
-            border: 1px solid rgba(255, 255, 255, 0.4); 
+            /* 50% 透明度 */
+            backdrop-filter: blur(35px) saturate(170%); -webkit-backdrop-filter: blur(35px) saturate(170%);
+            border: 1px solid rgba(255, 255, 255, 0.5); 
             box-shadow: var(--float-shadow);
             display: flex; justify-content: center; align-items: center; 
             overflow: hidden; position: relative;
-            transition: transform 0.2s cubic-bezier(0.2, 0, 0.2, 1);
         }
 
-        /* 3. 渐变色调整：深色不变，浅色更往白色一点 */
-        .c-pink .card { background: linear-gradient(to bottom right, rgba(255, 240, 245, 0.2), rgba(255, 192, 203, 0.15)); }
-        .c-blue .card { background: linear-gradient(to bottom right, rgba(240, 248, 255, 0.2), rgba(135, 206, 250, 0.15)); }
-        .c-purple .card { background: linear-gradient(to bottom right, rgba(250, 240, 255, 0.2), rgba(221, 160, 221, 0.15)); }
-        .c-green .card { background: linear-gradient(to bottom right, rgba(245, 255, 250, 0.2), rgba(152, 251, 152, 0.15)); }
-        .c-orange .card { background: linear-gradient(to bottom right, rgba(255, 250, 240, 0.2), rgba(255, 165, 0, 0.12)); }
+        /* 模块配色 0.5 透明度 */
+        .c-pink .card { background: linear-gradient(135deg, rgba(255, 192, 203, 0.5), rgba(255, 255, 255, 0.2)); }
+        .c-cyan .card { background: linear-gradient(135deg, rgba(165, 243, 239, 0.5), rgba(255, 255, 255, 0.2)); }
+        .c-blue .card { background: linear-gradient(135deg, rgba(135, 206, 250, 0.5), rgba(255, 255, 255, 0.2)); }
+        .c-purple .card { background: linear-gradient(135deg, rgba(216, 180, 254, 0.5), rgba(255, 255, 255, 0.2)); }
+        .c-orange .card { background: linear-gradient(135deg, rgba(255, 218, 185, 0.5), rgba(255, 255, 255, 0.2)); }
 
-        .card-icon { font-size: 34px; z-index: 2; pointer-events: none; }
-        .label { height: var(--label-height); line-height: var(--label-height); font-size: 11px; color: #111; font-weight: 600; text-align: center; margin-top: 5px; pointer-events: none; }
+        /* 核心修改：图片占据面积增加一倍 (由50%改为85%) */
+        .img-wrap { width: 85%; height: 85%; display: flex; justify-content: center; align-items: center; }
+        .img-wrap img { width: 100%; height: 100%; object-fit: contain; }
 
+        .label { height: var(--label-height); line-height: var(--label-height); font-size: 11px; color: #111; font-weight: 600; text-align: center; margin-top: 5px; }
+
+        /* 保持 40 版的原始尺寸计算 */
         .item.w1h1 { width: 25%; height: calc(var(--col-width) + var(--label-height) + 6px); }
         .item.w2h1 { width: 50%; height: calc(var(--col-width) + var(--label-height) + 6px); }
         .item.w2h2 { width: 50%; height: calc((var(--col-width) + var(--label-height) + 6px) * 2); }
         .item.w1h2 { width: 25%; height: calc((var(--col-width) + var(--label-height) + 6px) * 2); }
         .item.w4h2 { width: 100%; height: calc((var(--col-width) + var(--label-height) + 6px) * 2); }
-
-        .muuri-item-dragging { z-index: 100; }
-        .muuri-item-dragging .card { transform: scale(1.08); background: rgba(255,255,255,0.4); box-shadow: 0 20px 50px rgba(0,0,0,0.25); }
-        .muuri-item-placeholder { opacity: 0; }
     </style>
 </head>
 <body>
-
-    <div id="pull-down-header">
-        <div class="logo-box" id="logo-box"><div class="logo-text">XiToys.cn</div></div>
-    </div>
-
-    <div id="main-wrapper">
-        <div class="grid" id="grid"></div>
-    </div>
+    <div id="grid" class="grid"></div>
 
 <script>
-    const wrapper = document.getElementById('main-wrapper'), 
-          header = document.getElementById('pull-down-header'), 
-          logoBox = document.getElementById('logo-box');
-    let startY = 0, pulling = false, isLocking = false;
-
-    // 下拉判定：仅下拉触发 Logo，上滑正常滚动
-    window.addEventListener('touchstart', e => { 
-        if (window.scrollY <= 5 && !isLocking) { 
-            startY = e.touches[0].pageY; 
-            pulling = true; 
-        } 
-    }, { passive: true });
-
-    window.addEventListener('touchmove', e => {
-        if (!pulling || isLocking) return;
-        let diff = e.touches[0].pageY - startY;
-
-        if (diff > 5 && window.scrollY <= 0) {
-            let dist = Math.pow(diff, 0.8) * 2.8;
-            wrapper.style.transition = 'none';
-            header.style.transition = 'none';
-            wrapper.style.transform = `translateY(${dist}px)`;
-            header.style.transform = `translateY(${dist - 100}px)`;
-            logoBox.style.opacity = Math.min(dist / 80, 1);
-        } else if (diff < 0) {
-            pulling = false; 
-        }
-    }, { passive: true });
-
-    window.addEventListener('touchend', () => {
-        if (!pulling) return;
-        pulling = false;
-        isLocking = true;
-        
-        const spring = 'transform 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275)';
-        wrapper.style.transition = header.style.transition = spring;
-        wrapper.style.transform = 'translateY(90px)';
-        header.style.transform = 'translateY(-10px)'; 
-        logoBox.style.opacity = 1;
-
-        setTimeout(() => {
-            const back = 'transform 0.6s cubic-bezier(0.4, 0, 0.2, 1)';
-            wrapper.style.transition = header.style.transition = back;
-            wrapper.style.transform = 'translateY(0)';
-            header.style.transform = 'translateY(-100px)';
-            setTimeout(() => { logoBox.style.opacity = 0; isLocking = false; }, 600);
-        }, 1000); 
-    });
-
     function updateLayout() {
         const w = Math.min(window.innerWidth, 500) - 20;
-        const col = w / 4;
-        document.documentElement.style.setProperty('--col-width', col + 'px');
+        document.documentElement.style.setProperty('--col-width', (w / 4) + 'px');
         document.getElementById('grid').style.width = w + 'px';
     }
     updateLayout();
 
     const modules = [
-        { w: 2, h: 2, name: "购物", icon: "🖼️", color: "c-pink", url: "shop.html" },
-        { w: 2, h: 1, name: "购物", icon: "📝", color: "c-blue", url: "shop.html" },
-        { w: 1, h: 1, name: "购物", icon: "⚙️", color: "c-purple", url: "shop.html" },
-        { w: 1, h: 2, name: "购物", icon: "📻", color: "c-blue", url: "shop.html" },
-        { w: 1, h: 1, name: "购物", icon: "✉️", color: "c-orange", url: "shop.html" },
-        { w: 1, h: 1, name: "购物", icon: "🗺️", color: "c-green", url: "shop.html" },
-        { w: 1, h: 1, name: "购物", icon: "📅", color: "c-pink", url: "shop.html" },
-        { w: 1, h: 2, name: "购物", icon: "💡", color: "c-purple", url: "shop.html" },
-        { w: 2, h: 1, name: "购物", icon: "⛅", color: "c-blue", url: "shop.html" },
-        { w: 2, h: 1, name: "购物", icon: "💳", color: "c-orange", url: "shop.html" },
-        { w: 1, h: 1, name: "购物", icon: "📞", color: "c-green", url: "shop.html" },
-        { w: 2, h: 2, name: "购物", icon: "🎬", color: "c-pink", url: "shop.html" },
-        { w: 1, h: 1, name: "购物", icon: "📒", color: "c-orange", url: "shop.html" },
-        { w: 1, h: 1, name: "购物", icon: "⏰", color: "c-purple", url: "shop.html" },
-        { w: 1, h: 1, name: "购物", icon: "📷", color: "c-green", url: "shop.html" },
-        { w: 4, h: 2, name: "购物", icon: "🖥️", color: "c-blue", url: "shop.html" }
+        { w: 2, h: 2, name: "商城测试", img: "1001.png", color: "c-pink", url: "shop.html" },
+        { w: 2, h: 1, name: "商城测试", img: "1002.png", color: "c-blue", url: "shop.html" },
+        { w: 1, h: 1, name: "商城测试", img: "1003.png", color: "c-pink", url: "shop.html" },
+        { w: 1, h: 2, name: "商城测试", img: "1004.png", color: "c-cyan", url: "shop.html" },
+        { w: 1, h: 1, name: "商城测试", img: "1005.png", color: "c-purple", url: "shop.html" },
+        { w: 1, h: 1, name: "商城测试", img: "1006.png", color: "c-cyan", url: "shop.html" },
+        { w: 1, h: 1, name: "商城测试", img: "1007.png", color: "c-cyan", url: "shop.html" },
+        { w: 1, h: 2, name: "商城测试", img: "1008.png", color: "c-pink", url: "shop.html" },
+        { w: 2, h: 1, name: "商城测试", img: "1009.png", color: "c-blue", url: "shop.html" },
+        { w: 2, h: 1, name: "商城测试", img: "1010.png", color: "c-orange", url: "shop.html" },
+        { w: 1, h: 1, name: "商城测试", img: "1011.png", color: "c-cyan", url: "shop.html" },
+        { w: 2, h: 2, name: "商城测试", img: "1012.png", color: "c-pink", url: "shop.html" },
+        { w: 1, h: 1, name: "商城测试", img: "1013.png", color: "c-purple", url: "shop.html" },
+        { w: 1, h: 1, name: "商城测试", img: "1014.png", color: "c-cyan", url: "shop.html" },
+        { w: 1, h: 1, name: "商城测试", img: "1015.png", color: "c-cyan", url: "shop.html" },
+        { w: 4, h: 2, name: "商城测试", img: "1016.png", color: "c-blue", url: "shop.html" }
     ];
 
     const gridEl = document.getElementById('grid');
     modules.forEach(m => {
         const el = document.createElement('div');
         el.className = `item w${m.w}h${m.h} ${m.color}`;
-        el.innerHTML = `<div class="item-content"><div class="card"><span class="card-icon">${m.icon}</span></div><div class="label">${m.name}</div></div>`;
+        const container = document.createElement('div');
+        container.className = 'item-content';
+        const card = document.createElement('div');
+        card.className = "card";
+        const wrap = document.createElement('div');
+        wrap.className = "img-wrap";
         
-        let tx, ty;
-        el.addEventListener('touchstart', e => { tx = e.touches[0].clientX; ty = e.touches[0].clientY; }, {passive: true});
-        el.addEventListener('touchend', e => {
-            const mx = Math.abs(e.changedTouches[0].clientX - tx);
-            const my = Math.abs(e.changedTouches[0].clientY - ty);
-            if (mx < 10 && my < 10 && !el.classList.contains('muuri-item-dragging')) {
-                window.location.href = m.url;
-            }
-        });
+        const img = new Image();
+        img.src = m.img;
+        
+        wrap.appendChild(img);
+        card.appendChild(wrap);
+        const label = document.createElement('div');
+        label.className = "label";
+        label.innerText = m.name;
+        
+        container.appendChild(card);
+        container.appendChild(label);
+        el.appendChild(container);
+        el.onclick = () => { if(!el.classList.contains('muuri-item-dragging')) window.location.href = m.url; };
         gridEl.appendChild(el);
     });
 
     window.onload = function() {
-        const grid = new Muuri('.grid', {
-            dragEnabled: true, dragHandle: '.card', dragSort: true,
-            layout: { fillGaps: true }, dragStartPredicate: { distance: 10, delay: 300 }
-        });
-        grid.on('dragReleaseEnd', () => grid.layout());
+        const grid = new Muuri('.grid', { dragEnabled: true, dragHandle: '.card', layout: { fillGaps: true } });
         window.addEventListener('resize', () => { updateLayout(); grid.refreshItems().layout(); });
-        setTimeout(() => grid.layout(), 200);
+        setTimeout(() => grid.layout(), 300);
     };
 </script>
 </body>
