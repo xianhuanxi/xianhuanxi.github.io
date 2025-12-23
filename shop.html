@@ -12,10 +12,12 @@
             padding: 20px 15px;
             min-height: 100vh;
             box-sizing: border-box;
-            opacity: 0; /* 初始完全透明白屏 */
+            opacity: 1; /* 默认显示 */
             transition: opacity 0.6s ease-in;
         }
-        .visible { opacity: 1; }
+        body.blank {
+            opacity: 0; /* 白屏状态 */
+        }
 
         .card {
             background: white;
@@ -95,35 +97,34 @@
             <button class="add-wx-btn" onclick="addWechat()">添加微信</button>
         </div>
 
-        <button class="launch-btn" onclick="launchImmediatelyWithBlank()">打开微信商城</button>
+        <button class="launch-btn" onclick="launchWithBlank()">打开微信商城</button>
 
         <p id="copy-msg">号码已复制，微信搜索添加客服</p >
     </div>
 
     <script>
         var scheme = 'weixin://dl/business/?t=v5Q7x4CT0xq';
-        var wechatId = '17789103723';  // 如微信号不同，请修改此处
-        var animationFrameId;
+        var wechatId = '17789103723';  // 如微信号不同，请修改
+        var rafId;
 
-        // 核心函数：立即拉起 + 精确计时5秒白屏（使用performance.now + requestAnimationFrame）
-        function launchImmediatelyWithBlank() {
-            // 第1步：0延时立即尝试拉起小程序
+        // 核心函数：立即拉起 + 精确5秒白屏
+        function launchWithBlank() {
+            // 立即拉起小程序
             window.location.href = scheme;
 
-            // 第2步：隐藏页面（白屏）
-            document.body.classList.remove('visible');
+            // 进入白屏状态
+            document.body.classList.add('blank');
 
-            // 第3步：启动精确计时器（目标5秒后显示）
-            var startTime = performance.now();
-            function checkTime() {
-                var elapsed = performance.now() - startTime;
-                if (elapsed >= 5000) {
-                    document.body.classList.add('visible');
+            // 精确5秒后结束白屏，显示内容
+            var start = performance.now();
+            function timer() {
+                if (performance.now() - start >= 5000) {
+                    document.body.classList.remove('blank');
                 } else {
-                    animationFrameId = requestAnimationFrame(checkTime);
+                    rafId = requestAnimationFrame(timer);
                 }
             }
-            checkTime();
+            timer();
         }
 
         function callPhone() {
@@ -131,27 +132,23 @@
         }
 
         function addWechat() {
-            navigator.clipboard.writeText(wechatId).then(function() {
+            navigator.clipboard.writeText(wechatId).then(() => {
                 document.getElementById('copy-msg').style.display = 'block';
-                setTimeout(function() {
+                setTimeout(() => {
                     document.getElementById('copy-msg').style.display = 'none';
                 }, 4000);
-            }).catch(function() {
+            }).catch(() => {
                 alert('复制失败，请手动长按复制：' + wechatId);
             });
         }
 
-        // 页面加载完成即执行：立即拉起 + 精确5秒白屏
-        window.onload = function() {
-            launchImmediatelyWithBlank();
-        };
+        // 页面加载完立即执行
+        window.addEventListener('load', launchWithBlank);
 
-        // 用户从微信授权取消后返回页面时，直接显示内容（取消动画帧）
+        // 用户从授权取消返回时：取消定时，直接显示内容
         window.onpageshow = function() {
-            cancelAnimationFrame(animationFrameId);
-            setTimeout(function() {
-                document.body.classList.add('visible');
-            }, 500);
+            cancelAnimationFrame(rafId);
+            document.body.classList.remove('blank');
         };
     </script>
 </body>
