@@ -103,19 +103,27 @@
     <script>
         var scheme = 'weixin://dl/business/?t=v5Q7x4CT0xq';
         var wechatId = '17789103723';  // 如微信号不同，请修改此处
+        var animationFrameId;
 
-        // 核心函数：立即拉起 + 白屏5秒后显示页面
+        // 核心函数：立即拉起 + 精确计时5秒白屏（使用performance.now + requestAnimationFrame）
         function launchImmediatelyWithBlank() {
             // 第1步：0延时立即尝试拉起小程序
             window.location.href = scheme;
 
-            // 第2步：隐藏页面（保持白屏）
+            // 第2步：隐藏页面（白屏）
             document.body.classList.remove('visible');
 
-            // 第3步：5秒后若未成功跳转，才显示备用界面
-            setTimeout(function() {
-                document.body.classList.add('visible');
-            }, 5000);
+            // 第3步：启动精确计时器（目标5秒后显示）
+            var startTime = performance.now();
+            function checkTime() {
+                var elapsed = performance.now() - startTime;
+                if (elapsed >= 5000) {
+                    document.body.classList.add('visible');
+                } else {
+                    animationFrameId = requestAnimationFrame(checkTime);
+                }
+            }
+            checkTime();
         }
 
         function callPhone() {
@@ -133,13 +141,14 @@
             });
         }
 
-        // 页面加载完成即执行：立即拉起 + 白屏5秒
+        // 页面加载完成即执行：立即拉起 + 精确5秒白屏
         window.onload = function() {
             launchImmediatelyWithBlank();
         };
 
-        // 用户从微信授权取消后返回页面时，直接显示内容
+        // 用户从微信授权取消后返回页面时，直接显示内容（取消动画帧）
         window.onpageshow = function() {
+            cancelAnimationFrame(animationFrameId);
             setTimeout(function() {
                 document.body.classList.add('visible');
             }, 500);
