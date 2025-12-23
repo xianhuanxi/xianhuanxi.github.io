@@ -2,74 +2,130 @@
 <html lang="zh-CN">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>正在跳转...</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>跳转欢喜生活馆微信商城</title>
     <style>
-        /* CSS 层级排列：确保按钮无论如何都在最前面 */
-        body { font-family: sans-serif; margin: 0; padding: 0; background: #fff; text-align: center; }
-        .container { width: 100%; padding-top: 50px; }
-        
-        /* 客服电话 */
-        .phone-num { font-size: 32px; font-weight: bold; margin: 10px 0 30px; display: block; }
-        
-        /* 按钮通用：确保宽度和高度足够点击 */
-        .btn {
-            display: flex; align-items: center; justify-content: center;
-            width: 85%; height: 55px; margin: 15px auto;
-            border-radius: 12px; font-size: 18px; font-weight: bold;
-            text-decoration: none; border: none; cursor: pointer;
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+            text-align: center;
+            padding: 40px 20px;
+            background: #f8f8f8;
+            margin: 0;
+            opacity: 0; /* 初始完全透明 */
+            transition: opacity 0.6s ease-in; /* 渐显动画 */
         }
+        .visible { opacity: 1; }
 
-        /* 按钮 A: 拨号 (灰色) */
-        .btn-call { background-color: #f2f2f2; color: #333; }
-        
-        /* 按钮 B: 微信 (绿色) */
-        .btn-wechat { background-color: #07c160; color: white; }
-        
-        /* 按钮 C: 商城 (红色/橙色 - 位于红框位置) */
-        .btn-shop { 
-            background-color: #ff5000; color: white; 
-            margin-top: 60px; /* 增加间距，对应底部位置 */
-            box-shadow: 0 4px 12px rgba(255,80,0,0.2); 
+        .container {
+            max-width: 400px;
+            margin: 0 auto;
+            background: white;
+            padding: 40px 30px;
+            border-radius: 16px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.1);
         }
-
-        .tips { color: #999; font-size: 13px; margin-top: 10px; }
+        h1 {
+            font-size: 24px;
+            color: #333;
+            margin-bottom: 30px;
+        }
+        .launch-btn {
+            background: #07c160;
+            color: white;
+            border: none;
+            padding: 16px 40px;
+            font-size: 18px;
+            border-radius: 50px;
+            margin-bottom: 40px;
+            cursor: pointer;
+            box-shadow: 0 4px 10px rgba(7,193,96,0.3);
+        }
+        .phone {
+            font-size: 28px;
+            font-weight: bold;
+            color: #000;
+            margin: 30px 0;
+        }
+        .btn-group button {
+            width: 45%;
+            padding: 14px;
+            font-size: 17px;
+            border: none;
+            border-radius: 12px;
+            margin: 10px 2%;
+            cursor: pointer;
+        }
+        .call-btn {
+            background: #07c160;
+            color: white;
+        }
+        .add-wx-btn {
+            background: #ff9900;
+            color: white;
+        }
+        #copy-msg {
+            color: #07c160;
+            font-size: 16px;
+            margin-top: 15px;
+            display: none;
+        }
     </style>
 </head>
 <body>
+    <div class="container" id="fallback">
+        <h1>欢迎进入欢喜生活馆</h1>
+        <button class="launch-btn" onclick="launchMiniProgram()">打开微信商城</button>
 
-    <div class="container">
-        <div style="color:#888;">客服联系电话</div>
-        <div class="phone-num">177 8910 3723</div>
+        <div class="phone">客服电话：17789103723</div>
 
-        拨打客服电话
+        <div class="btn-group">
+            <button class="call-btn" onclick="callPhone()">拨打电话</button>
+            <button class="add-wx-btn" onclick="addWechat()">添加微信</button>
+        </div>
 
-        <button onclick="doCopy()" id="btn_wechat" class="btn btn-wechat">添加客服微信</button>
-
-        
-        
-        <div class="tips">若系统未自动弹出跳转提示，请点击上方按钮</div>
+        <p id="copy-msg">号码已复制，微信搜索添加客服</p >
     </div>
 
-    <input type="text" id="copyText" value="17789103723" style="position:fixed; left:-999px;" readonly>
-
     <script>
-        // 1. 自动跳转指令（辅助性，即便失败也不影响上面按钮显示）
         var scheme = 'weixin://dl/business/?t=v5Q7x4CT0xq';
-        
-        // 延迟 1 秒尝试自动跳转，给系统弹窗留出时间，且不卡住页面渲染
-        setTimeout(function() {
-            window.location.href = scheme;
-        }, 1000);
+        var fallbackTimer;
+        var wechatId = '17789103723';  // 微信号与电话相同，可修改
 
-        // 2. 复制函数逻辑
-        function doCopy() {
-            var input = document.getElementById("copyText");
-            input.select();
-            input.setSelectionRange(0, 99999);
-            document.execCommand("copy");
-            alert("客服微信号已复制：17789103723\n请前往微信添加");
+        function launchMiniProgram() {
+            window.location.href = scheme;
         }
+
+        function callPhone() {
+            window.location.href = 'tel:17789103723';
+        }
+
+        function addWechat() {
+            navigator.clipboard.writeText(wechatId).then(function() {
+                document.getElementById('copy-msg').style.display = 'block';
+                // 3秒后自动隐藏提示
+                setTimeout(function() {
+                    document.getElementById('copy-msg').style.display = 'none';
+                }, 3000);
+            }).catch(function() {
+                alert('复制失败，请手动长按复制：' + wechatId);
+            });
+        }
+
+        window.onload = function() {
+            // 立即尝试拉起小程序
+            launchMiniProgram();
+
+            // 5秒后如果页面还在，说明用户未允许跳转，显示fallback界面
+            fallbackTimer = setTimeout(function() {
+                document.body.classList.add('visible');
+            }, 5000);
+        };
+
+        // 如果用户中途返回页面（例如取消了授权后回来），也显示内容
+        window.onpageshow = function() {
+            clearTimeout(fallbackTimer);
+            document.body.classList.add('visible');
+        };
     </script>
 </body>
 </html>
