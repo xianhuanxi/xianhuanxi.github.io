@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>欢喜生活馆</title>
+    <title> 欢喜生活馆 </title>
     <script src="https://cdn.jsdelivr.net/npm/web-animations-js@2.3.2/web-animations.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/muuri@0.9.5/dist/muuri.min.js"></script>
     
@@ -11,13 +11,13 @@
         :root {
             --col-width: 0px; 
             --gutter: 18px; 
-            --label-height: 26px;
-            --float-shadow: 0 12px 30px rgba(0, 0, 0, 0.12);
+            --label-height: 26px; 
+            --float-shadow: 0 12px 35px rgba(0, 0, 0, 0.12);
         }
 
         body {
             margin: 0; padding: 0;
-            /* 底色蒙白：原色为主，亮度提升 */
+            /* 颜值核心：50%白蒙版 + 紫蓝渐变 */
             background: linear-gradient(rgba(255, 255, 255, 0.5), rgba(255, 255, 255, 0.5)), 
                         linear-gradient(135deg, #d8b4fe 0%, #7db9f8 100%);
             min-height: 100vh;
@@ -26,45 +26,152 @@
             user-select: none; -webkit-user-select: none;
         }
 
+        /* --- 下拉交互层 --- */
+        #pull-down-header {
+            position: fixed; top: 0; left: 0; width: 100%; height: 120px; /* 增加高度容纳回弹空间 */
+            display: flex; justify-content: center; align-items: flex-end; /* Logo 居底对齐 */
+            padding-bottom: 20px; box-sizing: border-box;
+            z-index: 100; pointer-events: none; 
+            transform: translateY(-120px); /* 默认完全隐藏 */
+        }
+        .logo-box {
+            width: 90%; height: 75px; 
+            background: rgba(255, 94, 120, 0.85); /* 品牌红 */
+            border-radius: 24px;
+            backdrop-filter: blur(20px); 
+            box-shadow: 0 15px 40px rgba(255, 94, 120, 0.35);
+            display: flex; justify-content: center; align-items: center; 
+            opacity: 0; transform: scale(0.9); transition: opacity 0.3s, transform 0.3s;
+        }
+        .logo-text { color: white; font-size: 38px; font-weight: 900; font-style: italic; letter-spacing: 1px; }
+
+        /* 主界面容器 */
+        #main-wrapper { will-change: transform; position: relative; z-index: 10; }
+        
         .grid { position: relative; margin: 0 auto; padding: 20px 10px 300px; box-sizing: border-box; }
+
         .item { position: absolute; padding: calc(var(--gutter) / 2); box-sizing: border-box; }
         .item-content { width: 100%; height: 100%; display: flex; flex-direction: column; }
         
+        /* 卡片：50%透明 + 强磨砂 */
         .card {
             width: 100%; flex-grow: 1; border-radius: 28px;
-            /* 50% 透明度 */
             backdrop-filter: blur(35px) saturate(170%); -webkit-backdrop-filter: blur(35px) saturate(170%);
-            border: 1px solid rgba(255, 255, 255, 0.5); 
+            border: 1px solid rgba(255, 255, 255, 0.55); 
             box-shadow: var(--float-shadow);
             display: flex; justify-content: center; align-items: center; 
             overflow: hidden; position: relative;
         }
 
-        /* 模块配色 0.5 透明度 */
-        .c-pink .card { background: linear-gradient(135deg, rgba(255, 192, 203, 0.5), rgba(255, 255, 255, 0.2)); }
-        .c-cyan .card { background: linear-gradient(135deg, rgba(165, 243, 239, 0.5), rgba(255, 255, 255, 0.2)); }
-        .c-blue .card { background: linear-gradient(135deg, rgba(135, 206, 250, 0.5), rgba(255, 255, 255, 0.2)); }
-        .c-purple .card { background: linear-gradient(135deg, rgba(216, 180, 254, 0.5), rgba(255, 255, 255, 0.2)); }
-        .c-orange .card { background: linear-gradient(135deg, rgba(255, 218, 185, 0.5), rgba(255, 255, 255, 0.2)); }
+        /* 糖果配色 */
+        .c-pink .card { background: linear-gradient(135deg, rgba(255, 192, 203, 0.5), rgba(255, 255, 255, 0.25)); }
+        .c-blue .card { background: linear-gradient(135deg, rgba(135, 206, 250, 0.5), rgba(255, 255, 255, 0.25)); }
+        .c-purple .card { background: linear-gradient(135deg, rgba(216, 180, 254, 0.5), rgba(255, 255, 255, 0.25)); }
+        .c-cyan .card { background: linear-gradient(135deg, rgba(165, 243, 239, 0.5), rgba(255, 255, 255, 0.25)); }
+        .c-orange .card { background: linear-gradient(135deg, rgba(255, 218, 185, 0.5), rgba(255, 255, 255, 0.25)); }
 
-        /* 核心修改：图片占据面积增加一倍 (由50%改为85%) */
-        .img-wrap { width: 85%; height: 85%; display: flex; justify-content: center; align-items: center; }
-        .img-wrap img { width: 100%; height: 100%; object-fit: contain; }
+        /* 图片：90% 占比 + 禁止拖拽(防Bug) */
+        .img-wrap { width: 90%; height: 90%; display: flex; justify-content: center; align-items: center; }
+        .img-wrap img { width: 100%; height: 100%; object-fit: contain; pointer-events: none; -webkit-user-drag: none; }
 
-        .label { height: var(--label-height); line-height: var(--label-height); font-size: 11px; color: #111; font-weight: 600; text-align: center; margin-top: 5px; }
+        .label { height: var(--label-height); line-height: var(--label-height); font-size: 11px; color: #222; font-weight: 700; text-align: center; margin-top: 5px; }
 
-        /* 保持 40 版的原始尺寸计算 */
+        /* 规格定义 */
         .item.w1h1 { width: 25%; height: calc(var(--col-width) + var(--label-height) + 6px); }
         .item.w2h1 { width: 50%; height: calc(var(--col-width) + var(--label-height) + 6px); }
         .item.w2h2 { width: 50%; height: calc((var(--col-width) + var(--label-height) + 6px) * 2); }
         .item.w1h2 { width: 25%; height: calc((var(--col-width) + var(--label-height) + 6px) * 2); }
         .item.w4h2 { width: 100%; height: calc((var(--col-width) + var(--label-height) + 6px) * 2); }
+
+        .muuri-item-dragging .card { transform: scale(1.08); background: rgba(255,255,255,0.6); z-index: 999; }
     </style>
 </head>
 <body>
-    <div id="grid" class="grid"></div>
+
+    <div id="pull-down-header">
+        <div class="logo-box" id="logo-box"><div class="logo-text">XITOYS.CN</div></div>
+    </div>
+
+    <div id="main-wrapper">
+        <div id="grid" class="grid"></div>
+    </div>
 
 <script>
+    // --- 智能交互逻辑：滞留回弹 ---
+    const wrapper = document.getElementById('main-wrapper');
+    const header = document.getElementById('pull-down-header');
+    const logoBox = document.getElementById('logo-box');
+    
+    let startY = 0;
+    let currentDist = 0; // 记录当前距离
+    let pulling = false;
+    let isAnimating = false; // 防止动画冲突
+
+    window.addEventListener('touchstart', e => { 
+        if (window.scrollY <= 5 && !isAnimating) { 
+            startY = e.touches[0].pageY; 
+            pulling = true; 
+            wrapper.style.transition = header.style.transition = 'none'; 
+        } 
+    }, { passive: true });
+
+    window.addEventListener('touchmove', e => {
+        if (!pulling) return;
+        let diff = e.touches[0].pageY - startY;
+        if (diff > 0) {
+            // 阻尼公式
+            currentDist = Math.min(Math.pow(diff, 0.85) * 2.5, 200);
+            
+            wrapper.style.transform = `translateY(${currentDist}px)`;
+            header.style.transform = `translateY(${currentDist - 120}px)`; // header高度120
+            
+            // Logo 渐显
+            let opacity = Math.min((currentDist - 30) / 80, 1);
+            logoBox.style.opacity = opacity > 0 ? opacity : 0;
+            logoBox.style.transform = `scale(${0.9 + (opacity * 0.1)})`; // 微微放大效果
+        }
+    }, { passive: true });
+
+    window.addEventListener('touchend', () => {
+        if (!pulling) return; 
+        pulling = false;
+        
+        // 触发阈值：如果拉动超过 90px，则触发“滞留展示”
+        if (currentDist > 90) {
+            isAnimating = true;
+            
+            // 1. 吸附到展示位置
+            wrapper.style.transition = header.style.transition = 'transform 0.4s cubic-bezier(0.19, 1, 0.22, 1)';
+            wrapper.style.transform = 'translateY(120px)';
+            header.style.transform = 'translateY(0px)';
+            logoBox.style.opacity = 1;
+            logoBox.style.transform = 'scale(1)';
+
+            // 2. 滞留 1 秒后回弹
+            setTimeout(() => {
+                // 3. 缓慢回弹 (duration 1s)
+                wrapper.style.transition = header.style.transition = 'transform 1s cubic-bezier(0.25, 1, 0.5, 1)'; // 慢速柔和回弹
+                wrapper.style.transform = 'translateY(0)'; 
+                header.style.transform = 'translateY(-120px)';
+                
+                // 4. Logo 消失
+                setTimeout(() => { 
+                    logoBox.style.opacity = 0; 
+                    isAnimating = false; // 动画结束，允许再次交互
+                }, 300);
+            }, 1000); // 滞留时间 1000ms
+
+        } else {
+            // 如果拉得不够，直接快速弹回
+            wrapper.style.transition = header.style.transition = 'transform 0.3s ease-out';
+            wrapper.style.transform = 'translateY(0)';
+            header.style.transform = 'translateY(-120px)';
+            logoBox.style.opacity = 0;
+        }
+        currentDist = 0;
+    });
+
+    // --- 布局与模块 ---
     function updateLayout() {
         const w = Math.min(window.innerWidth, 500) - 20;
         document.documentElement.style.setProperty('--col-width', (w / 4) + 'px');
@@ -73,35 +180,36 @@
     updateLayout();
 
     const modules = [
-        { w: 2, h: 2, name: "测试中...", img: "1001.png", color: "c-pink", url: "shop.html" },
-        { w: 2, h: 1, name: "测试中...", img: "1002.png", color: "c-blue", url: "shop.html" },
-        { w: 1, h: 1, name: "测试中...", img: "1003.png", color: "c-pink", url: "shop.html" },
-        { w: 1, h: 2, name: "测试中...", img: "1004.png", color: "c-cyan", url: "shop.html" },
-        { w: 1, h: 1, name: "测试中...", img: "1005.png", color: "c-purple", url: "shop.html" },
-        { w: 1, h: 1, name: "测试中...", img: "1006.png", color: "c-cyan", url: "shop.html" },
-        { w: 1, h: 1, name: "测试中...", img: "1007.png", color: "c-cyan", url: "shop.html" },
-        { w: 1, h: 2, name: "测试中...", img: "1008.png", color: "c-pink", url: "shop.html" },
-        { w: 2, h: 1, name: "测试中...", img: "1009.png", color: "c-blue", url: "shop.html" },
-        { w: 2, h: 1, name: "测试中...", img: "1010.png", color: "c-orange", url: "shop.html" },
-        { w: 1, h: 1, name: "测试中...", img: "1011.png", color: "c-cyan", url: "shop.html" },
-        { w: 2, h: 2, name: "测试中...", img: "1012.png", color: "c-pink", url: "shop.html" },
-        { w: 1, h: 1, name: "测试中...", img: "1013.png", color: "c-purple", url: "shop.html" },
-        { w: 1, h: 1, name: "测试中...", img: "1014.png", color: "c-cyan", url: "shop.html" },
-        { w: 1, h: 1, name: "测试中...", img: "1015.png", color: "c-cyan", url: "shop.html" },
-        { w: 4, h: 2, name: "测试中...", img: "1016.png", color: "c-blue", url: "shop.html" }
+        { w: 2, h: 2, name: "暂用商城代替", img: "1001.png", color: "c-pink", url: "shop.html" },
+        { w: 2, h: 1, name: "暂用商城代替", img: "1002.png", color: "c-blue", url: "shop.html" },
+        { w: 1, h: 1, name: "暂用商城代替", img: "1003.png", color: "c-pink", url: "shop.html" },
+        { w: 1, h: 2, name: "暂用商城代替", img: "1004.png", color: "c-cyan", url: "shop.html" },
+        { w: 1, h: 1, name: "暂用商城代替", img: "1005.png", color: "c-purple", url: "shop.html" },
+        { w: 1, h: 1, name: "暂用商城代替", img: "1006.png", color: "c-cyan", url: "shop.html" },
+        { w: 1, h: 1, name: "暂用商城代替", img: "1007.png", color: "c-cyan", url: "shop.html" },
+        { w: 1, h: 2, name: "暂用商城代替", img: "1008.png", color: "c-pink", url: "shop.html" },
+        { w: 2, h: 1, name: "暂用商城代替", img: "1009.png", color: "c-blue", url: "shop.html" },
+        { w: 2, h: 1, name: "暂用商城代替", img: "1010.png", color: "c-orange", url: "shop.html" },
+        { w: 1, h: 1, name: "暂用商城代替", img: "1011.png", color: "c-cyan", url: "shop.html" },
+        { w: 2, h: 2, name: "暂用商城代替", img: "1012.png", color: "c-pink", url: "shop.html" },
+        { w: 1, h: 1, name: "暂用商城代替", img: "1013.png", color: "c-purple", url: "shop.html" },
+        { w: 1, h: 1, name: "暂用商城代替", img: "1014.png", color: "c-cyan", url: "shop.html" },
+        { w: 1, h: 1, name: "暂用商城代替", img: "1015.png", color: "c-cyan", url: "shop.html" },
+        { w: 4, h: 2, name: "暂用商城代替", img: "1016.png", color: "c-blue", url: "shop.html" }
     ];
 
     const gridEl = document.getElementById('grid');
     modules.forEach(m => {
         const el = document.createElement('div');
         el.className = `item w${m.w}h${m.h} ${m.color}`;
+        
         const container = document.createElement('div');
         container.className = 'item-content';
         const card = document.createElement('div');
         card.className = "card";
+        
         const wrap = document.createElement('div');
         wrap.className = "img-wrap";
-        
         const img = new Image();
         img.src = m.img;
         
@@ -114,6 +222,7 @@
         container.appendChild(card);
         container.appendChild(label);
         el.appendChild(container);
+
         el.onclick = () => { if(!el.classList.contains('muuri-item-dragging')) window.location.href = m.url; };
         gridEl.appendChild(el);
     });
